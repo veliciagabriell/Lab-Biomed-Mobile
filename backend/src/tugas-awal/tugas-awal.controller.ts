@@ -1,8 +1,9 @@
-import { Controller, Param, Patch, Get, Post, Body, HttpCode, HttpStatus, ParseIntPipe } from '@nestjs/common';
+import { Controller, Param, Patch, Get, Post, Body, HttpCode, HttpStatus, ParseIntPipe, Request, ForbiddenException } from '@nestjs/common';
 import { TugasAwalService } from './tugas-awal.service';
 import { ApiOperation, ApiBody, ApiResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { CreateTugasDto } from './dto/create-tugas-awal.dto';
 import { SubmitTugasDto } from './dto/submit-tugas-awal.dto';
+import { Role } from '../auth/role.enum';
 
 @ApiTags('Tugas Awal')
 @ApiBearerAuth('access-token')
@@ -37,7 +38,10 @@ export class TugasAwalController {
     //liat semua submission praktikan
     @Get('/modul/:modulId/submission')
     @ApiOperation({ summary: 'Submission semua praktikan per modul' })
-    async findAllSubmission(@Param('modulId', ParseIntPipe) modulId: number) {
+    async findAllSubmission(@Param('modulId', ParseIntPipe) modulId: number, @Request() req: any) {
+        if (req.user?.role !== Role.ASISTEN) {
+            throw new ForbiddenException('Hanya asisten yang dapat mengakses ini');
+        }
         return await this.tugasAwalService.getSubmission(modulId);
     }
 
@@ -49,9 +53,12 @@ export class TugasAwalController {
     @ApiResponse({ status: 201, description: 'Dokumen tugas awal berhasil diupload'})
     @ApiResponse({ status: 401, description: 'Dokumen tugas awal tidak berhasil diupload'})
     async uploadTugas(
-        @Param('modulId', ParseIntPipe) modulId: number,
+        @Param('modulId', ParseIntPipe) modulId: number, @Request() req: any,
         @Body() createTugasDto: CreateTugasDto,
     ) {
+        if (req.user?.role !== Role.ASISTEN) {
+            throw new ForbiddenException('Hanya asisten yang dapat mengakses ini');
+        }
         (createTugasDto as any).modulId = modulId;
         return await this.tugasAwalService.uploadTugas(createTugasDto);
     }
@@ -65,9 +72,12 @@ export class TugasAwalController {
     @ApiResponse({ status: 401, description: 'Tidak berhasil memberikan nilai'})
     async giveNilai(
         @Param('modulId', ParseIntPipe) modulId: number,
-        @Param('submissionId', ParseIntPipe) submissionId: number,
+        @Param('submissionId', ParseIntPipe) submissionId: number, @Request() req: any,
         @Body() submitTugasDto: SubmitTugasDto,
     ) {
+        if (req.user?.role !== Role.ASISTEN) {
+            throw new ForbiddenException('Hanya asisten yang dapat mengakses ini');
+        }
         return await this.tugasAwalService.giveNilai(submissionId, submitTugasDto);
     }
 }

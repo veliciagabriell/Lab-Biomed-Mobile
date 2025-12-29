@@ -1,8 +1,8 @@
-import { Controller, Param, Get, Post, Body, HttpCode, HttpStatus, ParseIntPipe } from '@nestjs/common';
+import { Controller, Param, Get, Post, Body, HttpCode, HttpStatus, ParseIntPipe, Request, ForbiddenException } from '@nestjs/common';
 import { PresensiService } from './presensi.service';
 import { ApiOperation, ApiBody, ApiResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { PresensiDto } from './dto/presensi.dto';
-import { Public } from '../auth/public.decorator';
+import { Role } from '../auth/role.enum';
 
 @ApiTags('Presensi')
 @ApiBearerAuth('access-token')
@@ -11,14 +11,15 @@ import { Public } from '../auth/public.decorator';
 export class PresensiController {
     constructor(private readonly presensiService: PresensiService) {}
     
-    @Public()
     @Get('/modul/:modulId')
     @ApiOperation({ summary: 'Daftar presensi per modulId' })
-    async getByModul(@Param('modulId', ParseIntPipe) modulId: number) {
+    async getByModul(@Param('modulId', ParseIntPipe) modulId: number, @Request() req: any) {
+        if (req.user?.role !== Role.ASISTEN) {
+            throw new ForbiddenException('Hanya asisten yang dapat mengakses ini');
+        }
         return this.presensiService.getPresensiByModulId(modulId);
     }
 
-    @Public()
     @Post('/modul/:modulId')
     @ApiOperation ({ summary: 'Kirim presensi untuk modul tertentu' })
     @HttpCode(HttpStatus.OK)
