@@ -2,6 +2,7 @@ import { Controller, Param, ParseIntPipe, Get, Post, Body, HttpCode, HttpStatus 
 import { ModulService } from './modul.service';
 import { ApiOperation, ApiBody, ApiResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { CreateModulDto } from './dto/create-modul.dto';
+import { Public } from '../auth/public.decorator';
 
 @ApiTags('Modul')
 @ApiBearerAuth('access-token')
@@ -10,12 +11,14 @@ import { CreateModulDto } from './dto/create-modul.dto';
 export class ModulController {
     constructor(private readonly modulService: ModulService) {}
 
+    @Public()
     @Get('praktikum/:praktikumId')
     @ApiOperation({ summary: 'Daftar modul praktikum'})
     async getModul(@Param('praktikumId', ParseIntPipe) praktikumId: number) {
         return this.modulService.findModulByPraktikumId(praktikumId);
     }
 
+    @Public()
     @Get('detail/:id')
     @ApiOperation({ summary: 'Detail modul praktikum'})
     async getDetail(@Param('id', ParseIntPipe) id: number) {

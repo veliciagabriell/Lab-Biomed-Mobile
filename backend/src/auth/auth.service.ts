@@ -17,6 +17,7 @@ export class AuthService {
     async register(registerDto: RegisterDto) {
         try {
             const firestore = this.firebaseService.getFirestore();
+            const auth = admin.auth(); // Firebase Admin Auth
 
             console.log('AuthService.register - firestore initialized?', !!firestore);
 
@@ -26,27 +27,56 @@ export class AuthService {
 
             const usersCollection = firestore.collection('users');
 
+            // Check if user exists in Firestore
             const userExist = await usersCollection.where('email', '==', registerDto.email).get();
             if (!userExist.empty) {
                 throw new ConflictException('Email sudah terdaftar');
             }
 
+            // Create user in Firebase Authentication
+            let firebaseUser;
+            try {
+                firebaseUser = await auth.createUser({
+                    email: registerDto.email,
+                    password: registerDto.password,
+                    emailVerified: false,
+                });
+                console.log('Firebase Auth user created:', firebaseUser.uid);
+            } catch (firebaseError: any) {
+                console.error('Firebase Auth creation error:', firebaseError);
+                if (firebaseError.code === 'auth/email-already-exists') {
+                    throw new ConflictException('Email sudah terdaftar di Firebase Auth');
+                }
+                throw new InternalServerErrorException('Gagal membuat user di Firebase Auth');
+            }
+
+            // Hash password for Firestore storage (backup)
             const hashPassword = await bcrypt.hash(registerDto.password, 10);
 
             const newUser = {
+                uid: firebaseUser.uid, // Store Firebase UID
                 email: registerDto.email,
-                hashPassword,
+                hashPassword, // Keep hashed password as backup
                 nim: registerDto.nim,
                 role: registerDto.role ?? Role.PRAKTIKAN,
                 createdAt: new Date().toISOString(),
             };
 
-            const userRef = await usersCollection.add(newUser);
+            // Save to Firestore using Firebase UID as document ID
+            await usersCollection.doc(firebaseUser.uid).set(newUser);
 
-            const payload = { sub: userRef.id, email: newUser.email, role: newUser.role };
+            const payload = { sub: firebaseUser.uid, email: newUser.email, role: newUser.role };
             const accessToken = this.jwtService.sign(payload);
 
-            return { user: { id: userRef.id, email: newUser.email, nim: newUser.nim, role: newUser.role, createdAt: newUser.createdAt } };
+            return { 
+                user: { 
+                    id: firebaseUser.uid, 
+                    email: newUser.email, 
+                    nim: newUser.nim, 
+                    role: newUser.role, 
+                    createdAt: newUser.createdAt 
+                } 
+            };
         } catch (err: any) {
             console.error('AuthService.register error:', err);
             if (err instanceof ConflictException || err instanceof InternalServerErrorException || err instanceof UnauthorizedException) {

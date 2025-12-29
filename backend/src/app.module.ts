@@ -4,7 +4,9 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { PraktikumModule } from './praktikum/praktikum.module';
 import { ModulModule } from './modul/modul.module';
-import { PresensiModule } from './presensi/presensi.module'
+import { PresensiModule } from './presensi/presensi.module';
+import { PeminjamanModule } from './peminjaman/peminjaman.module';
+import { PeminjamanAlatModule } from './peminjaman-alat/peminjaman-alat.module';
 import { TugasAwalModule } from './tugas-awal/tugas-awal.module';
 import { UsersModule } from './users/users.module';
 import { FirebaseService } from '../firebase/firebase.service';
@@ -12,7 +14,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 
 @Module({
-  imports: [AuthModule, PraktikumModule, UsersModule, ModulModule, PresensiModule, TugasAwalModule],
+  imports: [AuthModule, PraktikumModule, UsersModule, ModulModule, PresensiModule, PeminjamanModule, PeminjamanAlatModule, TugasAwalModule],
   controllers: [AppController],
   providers: [AppService, FirebaseService, { provide: APP_GUARD, useClass: JwtAuthGuard }],
 })

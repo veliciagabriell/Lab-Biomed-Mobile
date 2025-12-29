@@ -2,6 +2,12 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { TugasAwal } from '../tugas-awal/tugas-awal.entity';
 import { Presensi } from '../presensi/presensi.entity';
 
+export enum StatusModul {
+    DONE = 'done',
+    ONGOING = 'ongoing',
+    LOCKED = 'locked',
+}
+
 @Entity('modul')
 export class Modul {
     @PrimaryGeneratedColumn('increment')
@@ -28,7 +34,14 @@ export class Modul {
     @Column ({ type: 'text'})
     prosedur: string;
 
-    @OneToMany(() => TugasAwal, (t) => t.modulRef)
+    @Column({ 
+        type: 'enum',
+        enum: StatusModul,
+        default: StatusModul.LOCKED,
+    })
+    status: StatusModul;
+
+    @OneToMany(() => TugasAwal, (t) => t.modul)
     tugasAwal: TugasAwal[];
 
     @OneToMany(() => Presensi, (p) => p.modulRef)

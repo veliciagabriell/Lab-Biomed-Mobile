@@ -23,6 +23,7 @@ export class ModulService{
                     id: data.id ?? doc.id ?? null,
                     judul: data.judul ?? null,
                     deskripsi: data.deskripsi ?? null,
+                    status: data.status ?? 'locked',
                 };
             });
         } else {
@@ -31,6 +32,7 @@ export class ModulService{
                 id: data.id ?? docs[0].id ?? null,
                 judul: data.judul ?? null,
                 deskripsi: data.deskripsi ?? null,
+                status: data.status ?? 'locked',
             };
         }
     }
@@ -84,6 +86,7 @@ export class ModulService{
             dasarTeori: data.dasarTeori ?? null,
             alatBahan: data.alatBahan ?? null,
             prosedur: data.prosedur ?? null,
+            status: data.status ?? 'locked',
         };
     }
 }
