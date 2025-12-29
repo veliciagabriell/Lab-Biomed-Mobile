@@ -28,7 +28,7 @@ export class Modul {
     @Column ({ type: 'text'})
     prosedur: string;
 
-    @OneToMany(() => TugasAwal, (t) => t.modul)
+    @OneToMany(() => TugasAwal, (t) => t.modulRef)
     tugasAwal: TugasAwal[];
 
     @OneToMany(() => Presensi, (p) => p.modulRef)
