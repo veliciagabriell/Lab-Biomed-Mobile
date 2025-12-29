@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Colors, Fonts } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useAuth } from '@/contexts/AuthContext';
 
 const { width } = Dimensions.get('window');
 const isSmallScreen = width < 375;
@@ -19,6 +20,7 @@ export default function PeminjamanScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  const { user } = useAuth();
 
   return (
     <ScrollView 
@@ -59,6 +61,7 @@ export default function PeminjamanScreen() {
         <TouchableOpacity 
           style={[styles.optionCard, { backgroundColor: colors.card }]}
           activeOpacity={0.7}
+          onPress={() => router.push('/peminjaman/alat')}
         >
           <View style={[styles.iconCircle, { backgroundColor: colors.secondary + '20' }]}>
             <Ionicons name="flask" size={32} color={colors.secondary} />
@@ -73,33 +76,17 @@ export default function PeminjamanScreen() {
           </View>
           <Ionicons name="chevron-forward" size={24} color={colors.icon} />
         </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={[styles.optionCard, { backgroundColor: colors.card }]}
-          activeOpacity={0.7}
-        >
-          <View style={[styles.iconCircle, { backgroundColor: colors.accent + '20' }]}>
-            <Ionicons name="time" size={32} color={colors.accent} />
-          </View>
-          <View style={styles.optionContent}>
-            <Text style={[styles.optionTitle, { fontFamily: Fonts.semiBold, color: colors.text }]}>
-              Riwayat Peminjaman
-            </Text>
-            <Text style={[styles.optionDescription, { fontFamily: Fonts.regular, color: colors.icon }]}>
-              View your booking history
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={24} color={colors.icon} />
-        </TouchableOpacity>
       </View>
 
-      {/* Info */}
-      <View style={[styles.infoCard, { backgroundColor: colors.primary + '15' }]}>
-        <Ionicons name="information-circle" size={24} color={colors.primary} />
-        <Text style={[styles.infoText, { fontFamily: Fonts.regular, color: colors.text }]}>
-          Silakan login untuk melakukan peminjaman lab atau alat
-        </Text>
-      </View>
+      {/* Info - Only show if not logged in */}
+      {!user && (
+        <View style={[styles.infoCard, { backgroundColor: colors.primary + '15' }]}>
+          <Ionicons name="information-circle" size={24} color={colors.primary} />
+          <Text style={[styles.infoText, { fontFamily: Fonts.regular, color: colors.text }]}>
+            Silakan login untuk melakukan peminjaman lab atau alat
+          </Text>
+        </View>
+      )}
     </ScrollView>
   );
 }

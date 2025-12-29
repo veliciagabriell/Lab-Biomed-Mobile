@@ -47,10 +47,18 @@ export default function ModulDetailScreen() {
   const [kelompok, setKelompok] = useState('');
   const [submittingPresensi, setSubmittingPresensi] = useState(false);
 
+  // Asisten State
+  const [presensiList, setPresensiList] = useState<any[]>([]);
+  const [tugasAwalList, setTugasAwalList] = useState<any[]>([]);
+  const [loadingAsistenData, setLoadingAsistenData] = useState(false);
+
   useEffect(() => {
     if (id) {
       loadModulDetail();
       checkTugasStatus();
+      if (user?.role === 'asisten') {
+        loadAsistenData();
+      }
     }
     if (user) {
       setNim(user.nim || '');
@@ -105,6 +113,35 @@ export default function ModulDetailScreen() {
       }
     } catch (error) {
       console.error('Error checking tugas status:', error);
+    }
+  };
+
+  const loadAsistenData = async () => {
+    setLoadingAsistenData(true);
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      
+      // Load presensi list
+      const presensiResponse = await fetch(`${API_URL}/presensi/modul/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (presensiResponse.ok) {
+        const presensiData = await presensiResponse.json();
+        setPresensiList(Array.isArray(presensiData) ? presensiData : []);
+      }
+
+      // Load tugas awal list
+      const tugasResponse = await fetch(`${API_URL}/tugas-awal/modul/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (tugasResponse.ok) {
+        const tugasData = await tugasResponse.json();
+        setTugasAwalList(Array.isArray(tugasData) ? tugasData : []);
+      }
+    } catch (error) {
+      console.error('Error loading asisten data:', error);
+    } finally {
+      setLoadingAsistenData(false);
     }
   };
 
@@ -476,6 +513,112 @@ export default function ModulDetailScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Asisten Dashboard Section */}
+        {user?.role === 'asisten' && (
+          <>
+            {/* Daftar Tugas Awal */}
+            <View style={[styles.sectionCard, { backgroundColor: colors.card }]}>
+              <View style={styles.sectionHeader}>
+                <Ionicons name="document-text" size={24} color="#F59E0B" />
+                <Text style={[styles.sectionTitle, { fontFamily: Fonts.semiBold, color: colors.text }]}>
+                  Daftar Tugas Awal ({tugasAwalList.length})
+                </Text>
+              </View>
+
+              {loadingAsistenData ? (
+                <ActivityIndicator color={colors.primary} style={{ marginVertical: 20 }} />
+              ) : tugasAwalList.length === 0 ? (
+                <View style={styles.emptyState}>
+                  <Ionicons name="document-outline" size={48} color={colors.icon} />
+                  <Text style={[styles.emptyStateText, { fontFamily: Fonts.regular, color: colors.icon }]}>
+                    Belum ada tugas awal yang disubmit
+                  </Text>
+                </View>
+              ) : (
+                <View style={styles.listContainer}>
+                  {tugasAwalList.map((tugas, index) => (
+                    <View key={index} style={[styles.listItem, { borderBottomColor: colors.border }]}>
+                      <View style={styles.listItemHeader}>
+                        <View style={styles.listItemInfo}>
+                          <Text style={[styles.listItemName, { fontFamily: Fonts.semiBold, color: colors.text }]}>
+                            {tugas.nama}
+                          </Text>
+                          <Text style={[styles.listItemSubtext, { fontFamily: Fonts.regular, color: colors.icon }]}>
+                            NIM: {tugas.nim}
+                          </Text>
+                        </View>
+                        <TouchableOpacity
+                          style={[styles.viewButton, { backgroundColor: colors.primary + '20' }]}
+                          onPress={() => Alert.alert('File URL', tugas.submission_url)}
+                        >
+                          <Ionicons name="eye" size={18} color={colors.primary} />
+                          <Text style={[styles.viewButtonText, { fontFamily: Fonts.medium, color: colors.primary }]}>
+                            Lihat
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                      {tugas.submittedAt && (
+                        <Text style={[styles.timestampText, { fontFamily: Fonts.regular, color: colors.icon }]}>
+                          Submitted: {new Date(tugas.submittedAt).toLocaleString('id-ID')}
+                        </Text>
+                      )}
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+
+            {/* Daftar Presensi */}
+            <View style={[styles.sectionCard, { backgroundColor: colors.card }]}>
+              <View style={styles.sectionHeader}>
+                <Ionicons name="people" size={24} color="#10B981" />
+                <Text style={[styles.sectionTitle, { fontFamily: Fonts.semiBold, color: colors.text }]}>
+                  Daftar Presensi ({presensiList.length})
+                </Text>
+              </View>
+
+              {loadingAsistenData ? (
+                <ActivityIndicator color={colors.primary} style={{ marginVertical: 20 }} />
+              ) : presensiList.length === 0 ? (
+                <View style={styles.emptyState}>
+                  <Ionicons name="people-outline" size={48} color={colors.icon} />
+                  <Text style={[styles.emptyStateText, { fontFamily: Fonts.regular, color: colors.icon }]}>
+                    Belum ada yang presensi
+                  </Text>
+                </View>
+              ) : (
+                <View style={styles.listContainer}>
+                  {presensiList.map((presensi, index) => (
+                    <View key={index} style={[styles.listItem, { borderBottomColor: colors.border }]}>
+                      <View style={styles.presensiRow}>
+                        <View style={[styles.kelompokBadge, { backgroundColor: colors.primary }]}>
+                          <Text style={[styles.kelompokText, { fontFamily: Fonts.bold }]}>
+                            {presensi.kelompok}
+                          </Text>
+                        </View>
+                        <View style={styles.presensiInfo}>
+                          <Text style={[styles.listItemName, { fontFamily: Fonts.semiBold, color: colors.text }]}>
+                            {presensi.nama}
+                          </Text>
+                          <Text style={[styles.listItemSubtext, { fontFamily: Fonts.regular, color: colors.icon }]}>
+                            NIM: {presensi.nim}
+                          </Text>
+                        </View>
+                        <Ionicons name="checkmark-circle" size={24} color="#10B981" />
+                      </View>
+                      {presensi.createdAt && (
+                        <Text style={[styles.timestampText, { fontFamily: Fonts.regular, color: colors.icon }]}>
+                          {new Date(presensi.createdAt).toLocaleString('id-ID')}
+                        </Text>
+                      )}
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+          </>
+        )}
+
         <View style={{ height: 40 }} />
       </ScrollView>
     </View>
@@ -664,5 +807,73 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.5,
+  },
+  listContainer: {
+    gap: 12,
+  },
+  listItem: {
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    marginBottom: 12,
+  },
+  listItemHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  listItemInfo: {
+    flex: 1,
+  },
+  listItemName: {
+    fontSize: isSmallScreen ? 15 : 16,
+    marginBottom: 4,
+  },
+  listItemSubtext: {
+    fontSize: isSmallScreen ? 12 : 13,
+  },
+  viewButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  viewButtonText: {
+    fontSize: isSmallScreen ? 12 : 13,
+  },
+  timestampText: {
+    fontSize: 11,
+    marginTop: 4,
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+    gap: 12,
+  },
+  emptyStateText: {
+    fontSize: isSmallScreen ? 13 : 14,
+  },
+  presensiRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 8,
+  },
+  kelompokBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  kelompokText: {
+    color: '#FFF',
+    fontSize: 16,
+  },
+  presensiInfo: {
+    flex: 1,
   },
 });

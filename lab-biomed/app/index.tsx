@@ -1,17 +1,18 @@
 import { useEffect } from 'react';
-import { Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { View, ActivityIndicator } from 'react-native';
 
-export default function Home() {
+export default function Index() {
+  const router = useRouter();
+
   useEffect(() => {
-    fetch('http://localhost:3000/health')
-      .then(res => res.json())
-      .then(data => console.log(data))
-      .catch(err => console.error(err));
+    // Redirect to tabs home page
+    router.replace('/(tabs)');
   }, []);
 
   return (
-    <View>
-      <Text>Check console log</Text>
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }}>
+      <ActivityIndicator size="large" color="#FF6B35" />
     </View>
   );
 }

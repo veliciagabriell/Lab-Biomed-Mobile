@@ -1,16 +1,16 @@
-import { Controller, Param, Get, Post, Body, HttpCode, HttpStatus, ParseIntPipe, Query, UseGuards } from '@nestjs/common';
+import { Controller, Param, Get, Post, Body, HttpCode, HttpStatus, ParseIntPipe, Query } from '@nestjs/common';
 import { TugasAwalService } from './tugas-awal.service';
 import { ApiOperation, ApiBody, ApiResponse, ApiTags, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { SubmiTugasDto } from './dto/submit-tugas-awal.dto';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Public } from '../auth/public.decorator';
 
 @ApiTags('Tugas Awal')
 @ApiBearerAuth('access-token')
-@UseGuards(JwtAuthGuard)
 @Controller('api/tugas-awal')
 export class TugasAwalController {
     constructor(private readonly tugasAwalService: TugasAwalService) {}
 
+    @Public()
     @Post('/modul/:modulId')
     @ApiOperation({ summary: 'Submit tugas awal untuk modul tertentu' })
     @HttpCode(HttpStatus.OK)
@@ -24,6 +24,7 @@ export class TugasAwalController {
         return await this.tugasAwalService.submitTugasAwal(modulId, submitDto);
     }
 
+    @Public()
     @Get('/modul/:modulId/status')
     @ApiOperation({ summary: 'Cek status tugas awal untuk nim tertentu' })
     @ApiQuery({ name: 'nim', required: true, type: String })
@@ -39,6 +40,7 @@ export class TugasAwalController {
         };
     }
 
+    @Public()
     @Get('/modul/:modulId')
     @ApiOperation({ summary: 'Get semua tugas awal untuk modul tertentu' })
     @ApiResponse({ status: 200, description: 'List semua submissions' })
