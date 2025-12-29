@@ -1,11 +1,14 @@
-import { Controller, Get, Post, Patch, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, Query, UseGuards, Request, ForbiddenException } from '@nestjs/common';
 import { PeminjamanService } from './peminjaman.service';
 import { CreatePeminjamanDto } from './dto/create-peminjaman.dto';
 import { UpdatePeminjamanStatusDto } from './dto/update-peminjaman.dto';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody, ApiResponse } from '@nestjs/swagger';
+import { Role } from '../auth/role.enum';
 
+@ApiTags('Peminjaman Lab')
 @Controller('api/peminjaman')
-@UseGuards(JwtAuthGuard)
+@ApiBearerAuth('access-token')
+
 export class PeminjamanController {
     constructor(private readonly peminjamanService: PeminjamanService) {}
 
@@ -44,6 +47,9 @@ export class PeminjamanController {
         @Body() updateDto: UpdatePeminjamanStatusDto,
         @Request() req
     ) {
+        if (req.user?.role !== Role.ASISTEN) {
+            throw new ForbiddenException('Hanya asisten yang dapat mengakses ini');
+        }
         return this.peminjamanService.updateStatus(
             id,
             updateDto,
