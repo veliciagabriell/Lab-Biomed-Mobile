@@ -1,4 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { TugasAwal } from '../tugas-awal/tugas-awal.entity';
+import { Presensi } from '../presensi/presensi.entity';
 
 @Entity('modul')
 export class Modul {
@@ -25,4 +27,10 @@ export class Modul {
 
     @Column ({ type: 'text'})
     prosedur: string;
+
+    @OneToMany(() => TugasAwal, (t) => t.modul)
+    tugasAwal: TugasAwal[];
+
+    @OneToMany(() => Presensi, (p) => p.modulRef)
+    presensi: Presensi[];
 }

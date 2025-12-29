@@ -1,4 +1,5 @@
-import { Entity, Index, Column } from 'typeorm';
+import { Entity, Index, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Modul } from '../modul/modul.entity';
 
 @Entity('Presensi')
 export class Presensi {
@@ -12,6 +13,10 @@ export class Presensi {
     @Column ({ type: 'int' })
     kelompok: number;
 
-    @Column ({ type: 'text' })
-    modul: string;
+    @Column({ name: 'modul_id', type: 'int', nullable: true})
+    modulId?: number;
+
+    @ManyToOne(() => Modul, (m) => m.presensi, {onDelete: 'SET NULL'})
+    @JoinColumn ({ name: 'modul_id'})
+    modulRef?: Modul;
 }

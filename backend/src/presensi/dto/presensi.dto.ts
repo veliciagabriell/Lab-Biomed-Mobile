@@ -17,8 +17,7 @@ export class PresensiDto {
     @IsNumber()
     kelompok: number;
 
-    @ApiProperty({ example: 'Praktikum X' })
-    @IsNotEmpty({ message: 'Namsa modul praktikum tidak boleh kosong '})
-    @IsString()
-    modul: string;
+    @ApiProperty({ example: 1, required: true })
+    @IsNumber()
+    modulId: number;
 }

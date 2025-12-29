@@ -21,6 +21,7 @@ export class PresensiService{
                 nama: data.nama ?? null,
                 kelompok: data.kelompok ?? null,
                 modul: data.modul ?? null,
+                modulId: data.modulId ?? null,
                 _id: doc.id,
             };
         });
@@ -32,33 +33,26 @@ export class PresensiService{
         return map;
     }
 
-    async getAllPresensi() {
+    async getPresensiByModulId(modulId: number): Promise<any[]> {
         const firestore = this.firebaseService.getFirestore()
         if (!firestore) throw new NotFoundException('Firestore not initialized');
-
         const col = firestore.collection('presensi');
-        const q = await col.get();
-        
-        const docs = q.docs || {};
-
-        if (docs.length > 1) {
+        try {
+            const q = await col.where('modulId', '==', modulId).get();
+            const docs = q.docs || [];
             return docs.map((doc) => {
                 const data = doc.data() || {} as any;
                 return {
                     nim: data.nim ?? null,
                     nama: data.nama ?? null,
                     kelompok: data.kelompok ?? null,
-                    modul: data.modul ?? null,
+                    modulId: data.modulId ?? null,
+                    _id: doc.id,
                 };
             });
-        } else {
-            const data = docs[0].data() || {} as any;
-            return {
-                nim: data.nim ?? null,
-                nama: data.nama ?? null,
-                kelompok: data.kelompok ?? null,
-                modul: data.modul ?? null,
-            };
+        } catch (err) {
+            const all = await this.getPresensiByNim();
+            return all.filter((p) => Number(p.modulId) === Number(modulId));
         }
     }
 
@@ -71,18 +65,16 @@ export class PresensiService{
         
         const presensiCollection = firestore.collection('presensi');
 
-        let docRef: any;
-
-        docRef = presensiCollection.doc(String(presensiDto.nim));
+        const docRef = presensiCollection.doc(String(presensiDto.nim));
         await docRef.set({ ...presensiDto });
 
         const result = {
-            nim: presensiDto.nim ?? docRef.nim,
+            nim: presensiDto.nim ?? null,
             nama: presensiDto.nama ?? null,
             kelompok: presensiDto.kelompok ?? null,
-            modul: presensiDto.modul ?? null,
+            modulId: presensiDto.modulId ?? null,
         };
 
-        return result
+        return result;
     }
 }
