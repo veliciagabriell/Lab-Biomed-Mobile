@@ -19,37 +19,88 @@ export class FirebaseService {
 
     try {
       const normalize = (v?: string) => (v ? v.replace(/^"|"$/g, '').replace(/,$/, '') : v);
-      const serviceAccountPath = path.join(__dirname, '../../firebase-service-account.json');
-
-      if (fs.existsSync(serviceAccountPath)) {
-        console.log('FirebaseService: initializing using firebase-service-account.json');
-        const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8')) as admin.ServiceAccount;
+      
+      // Check for FIREBASE_SERVICE_ACCOUNT environment variable first (for production)
+      if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+        console.log('FirebaseService: initializing using FIREBASE_SERVICE_ACCOUNT env');
+        const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
         this.app = admin.initializeApp({
           credential: admin.credential.cert(serviceAccount),
         });
-      } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-        console.log('FirebaseService: initializing using GOOGLE_APPLICATION_CREDENTIALS');
-        this.app = admin.initializeApp();
-      } else if (process.env.FIREBASE_PRIVATE_KEY && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PROJECT_ID) {
-        console.log('FirebaseService: initializing using FIREBASE_PRIVATE_KEY env vars');
-        const privateKey = normalize(process.env.FIREBASE_PRIVATE_KEY)!.replace(/\\n/g, '\n');
-        const clientEmail = normalize(process.env.FIREBASE_CLIENT_EMAIL)!;
-        const projectId = normalize(process.env.FIREBASE_PROJECT_ID)!;
-        this.app = admin.initializeApp({
-          credential: admin.credential.cert({
-            projectId,
-            clientEmail,
-            privateKey,
-          } as admin.ServiceAccount),
-        });
       } else {
-        console.warn('Firebase not initialized: service account JSON not found and env vars not set.');
+        // Fallback to file for local development
+        const serviceAccountPath = path.join(__dirname, '../../firebase-service-account.json');
+        
+        if (fs.existsSync(serviceAccountPath)) {
+          console.log('FirebaseService: initializing using firebase-service-account.json');
+          const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8')) as admin.ServiceAccount;
+          this.app = admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount),
+          });
+        } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+          console.log('FirebaseService: initializing using GOOGLE_APPLICATION_CREDENTIALS');
+          this.app = admin.initializeApp();
+        } else {
+          // Use individual env variables
+          const projectId = normalize(process.env.FIREBASE_PROJECT_ID);
+          const clientEmail = normalize(process.env.FIREBASE_CLIENT_EMAIL);
+          let privateKey = normalize(process.env.FIREBASE_PRIVATE_KEY);
+          
+          if (privateKey) {
+            privateKey = privateKey.replace(/\\n/g, '\n');
+          }
+
+          if (projectId && clientEmail && privateKey) {
+            console.log('FirebaseService: initializing using individual env variables');
+            this.app = admin.initializeApp({
+              credential: admin.credential.cert({
+                projectId,
+                clientEmail,
+                privateKey,
+              }),
+            });
+          } else {
+            console.warn('FirebaseService: No valid Firebase credentials found');
+          }
+        }
       }
-      console.log('FirebaseService: admin.apps.length =', admin.apps.length);
-    } catch (err) {
-      console.warn('Failed to initialize Firebase in FirebaseService:', err?.message ?? err);
+    } catch (error) {
+      console.error('FirebaseService initialization error:', error);
     }
   }
+  //   try {
+  //     const normalize = (v?: string) => (v ? v.replace(/^"|"$/g, '').replace(/,$/, '') : v);
+  //     const serviceAccountPath = path.join(__dirname, '../../firebase-service-account.json');
+
+  //     if (fs.existsSync(serviceAccountPath)) {
+  //       console.log('FirebaseService: initializing using firebase-service-account.json');
+  //       const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8')) as admin.ServiceAccount;
+  //       this.app = admin.initializeApp({
+  //         credential: admin.credential.cert(serviceAccount),
+  //       });
+  //     } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+  //       console.log('FirebaseService: initializing using GOOGLE_APPLICATION_CREDENTIALS');
+  //       this.app = admin.initializeApp();
+  //     } else if (process.env.FIREBASE_PRIVATE_KEY && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PROJECT_ID) {
+  //       console.log('FirebaseService: initializing using FIREBASE_PRIVATE_KEY env vars');
+  //       const privateKey = normalize(process.env.FIREBASE_PRIVATE_KEY)!.replace(/\\n/g, '\n');
+  //       const clientEmail = normalize(process.env.FIREBASE_CLIENT_EMAIL)!;
+  //       const projectId = normalize(process.env.FIREBASE_PROJECT_ID)!;
+  //       this.app = admin.initializeApp({
+  //         credential: admin.credential.cert({
+  //           projectId,
+  //           clientEmail,
+  //           privateKey,
+  //         } as admin.ServiceAccount),
+  //       });
+  //     } else {
+  //       console.warn('Firebase not initialized: service account JSON not found and env vars not set.');
+  //     }
+  //     console.log('FirebaseService: admin.apps.length =', admin.apps.length);
+  //   } catch (err) {
+  //     console.warn('Failed to initialize Firebase in FirebaseService:', err?.message ?? err);
+  //   }
+  // }
 
   getFirestore() {
     return admin.apps.length ? admin.firestore() : null;
