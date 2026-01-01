@@ -8,7 +8,7 @@ import { FirebaseService } from '../../firebase/firebase.service';
 
 @Module({
     imports: [PassportModule, JwtModule.register({
-        secret: 'SECRET_KEY',
+        secret: 'LAB_BIOMED',
         signOptions: { expiresIn: '1h' },
         }),
     ],
