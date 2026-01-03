@@ -37,7 +37,7 @@ export default function PeminjamanLabScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
-  const { user, isAuthenticated } = useAuth();
+  const { user } = useAuth();
 
   const [selectedDate, setSelectedDate] = useState('');
   const [markedDates, setMarkedDates] = useState<MarkedDates>({});
@@ -144,9 +144,15 @@ export default function PeminjamanLabScreen() {
   };
 
   const handleSubmit = async () => {
-    if (!isAuthenticated) {
-      Alert.alert('Error', 'Please login first');
-      router.push('/auth/login');
+    if (!user) {
+      Alert.alert(
+        'Login Diperlukan',
+        'Silakan login terlebih dahulu untuk melakukan peminjaman lab',
+        [
+          { text: 'Batal', style: 'cancel' },
+          { text: 'Login', onPress: () => router.push('/auth/login') }
+        ]
+      );
       return;
     }
 
@@ -398,6 +404,17 @@ export default function PeminjamanLabScreen() {
               activeTab === 'riwayat' && { backgroundColor: colors.primary },
             ]}
             onPress={() => {
+              if (!user) {
+                Alert.alert(
+                  'Login Diperlukan',
+                  'Silakan login terlebih dahulu untuk melihat riwayat peminjaman',
+                  [
+                    { text: 'Batal', style: 'cancel' },
+                    { text: 'Login', onPress: () => router.push('/auth/login') }
+                  ]
+                );
+                return;
+              }
               setActiveTab('riwayat');
               loadBookingHistory();
             }}
@@ -424,6 +441,16 @@ export default function PeminjamanLabScreen() {
         {/* Content based on active tab */}
         {activeTab === 'peminjaman' ? (
           <>
+            {/* Login Info for non-logged users */}
+            {!user && (
+              <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
+                <Ionicons name="information-circle-outline" size={24} color={colors.primary} />
+                <Text style={[styles.infoText, { fontFamily: Fonts.regular, color: colors.text }]}>
+                  Silakan login terlebih dahulu untuk melakukan peminjaman laboratorium
+                </Text>
+              </View>
+            )}
+            
             {/* Calendar */}
             <View style={[styles.calendarCard, { backgroundColor: colors.card }]}>
               <Text style={[styles.sectionTitle, { fontFamily: Fonts.semiBold, color: colors.text }]}>
@@ -1128,5 +1155,31 @@ const styles = StyleSheet.create({
   },
   viewAllText: {
     fontSize: isSmallScreen ? 13 : 14,
+  },
+  infoCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginHorizontal: isSmallScreen ? 16 : 20,
+    marginTop: 20,
+    marginBottom: 16,
+    padding: isSmallScreen ? 14 : 16,
+    borderRadius: 12,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  infoText: {
+    flex: 1,
+    fontSize: isSmallScreen ? 13 : 14,
+    lineHeight: 20,
   },
 });

@@ -95,7 +95,7 @@ export default function HomeScreen() {
                 {isAuthenticated ? `Hello, ${user?.nim}` : 'Hello'}
               </Text>
               <Text style={[styles.heroSubtitle, { fontFamily: Fonts.medium }]}>
-                Connecting technology{'\n'}to human health.
+                Connecting tech{'\n'}to human health.
               </Text>
             </View>
           </LinearGradient>

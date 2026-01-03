@@ -7,6 +7,7 @@ import {
   Dimensions,
   Platform,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect } from 'react';
@@ -24,7 +25,7 @@ export default function PraktikumScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const router = useRouter();
-  const { user, isAuthenticated } = useAuth();
+  const { user } = useAuth();
   
   const [modulList, setModulList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -98,6 +99,20 @@ export default function PraktikumScreen() {
     if (modul.status === 'locked') {
       return; // Do nothing for locked modul
     }
+    
+    // Check if user is logged in
+    if (!user) {
+      Alert.alert(
+        'Login Diperlukan',
+        'Silakan login terlebih dahulu untuk mengakses modul praktikum',
+        [
+          { text: 'Batal', style: 'cancel' },
+          { text: 'Login', onPress: () => router.push('/auth/login') }
+        ]
+      );
+      return;
+    }
+    
     router.push(`/modul/${modul.id}`);
   };
 
@@ -124,6 +139,16 @@ export default function PraktikumScreen() {
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
+        {/* Login Info for non-logged users */}
+        {!user && (
+          <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
+            <Ionicons name="information-circle-outline" size={24} color={colors.primary} />
+            <Text style={[styles.infoText, { fontFamily: Fonts.regular, color: colors.text }]}>
+              Silakan login terlebih dahulu untuk mengakses modul praktikum
+            </Text>
+          </View>
+        )}
+        
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.primary} />
@@ -207,18 +232,19 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingTop: Platform.OS === 'ios' ? 60 : 40,
-    paddingBottom: 24,
+    paddingBottom: 30,
     paddingHorizontal: isSmallScreen ? 16 : 20,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
   },
   headerTitle: {
-    fontSize: isSmallScreen ? 24 : 28,
+    fontSize: isSmallScreen ? 28 : 32,
     color: '#FFF',
-    marginBottom: 4,
+    marginBottom: 8,
   },
   headerSubtitle: {
-    fontSize: isSmallScreen ? 13 : 14,
-    color: '#FFF',
-    opacity: 0.9,
+    fontSize: isSmallScreen ? 14 : 16,
+    color: 'rgba(255,255,255,0.9)',
   },
   content: {
     flex: 1,
@@ -309,5 +335,31 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  infoCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginHorizontal: isSmallScreen ? 16 : 20,
+    marginTop: 20,
+    marginBottom: 12,
+    padding: isSmallScreen ? 14 : 16,
+    borderRadius: 12,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  infoText: {
+    flex: 1,
+    fontSize: isSmallScreen ? 13 : 14,
+    lineHeight: 20,
   },
 });

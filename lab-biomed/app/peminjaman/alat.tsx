@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useState, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { Calendar } from 'react-native-calendars';
 import { Colors, Fonts } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -38,6 +39,7 @@ export default function PeminjamanAlatScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const { user } = useAuth();
+  const router = useRouter();
 
   const [activeTab, setActiveTab] = useState<TabType>('peminjaman');
   const [selectedDate, setSelectedDate] = useState('');
@@ -94,6 +96,18 @@ export default function PeminjamanAlatScreen() {
   };
 
   const handleSubmit = async () => {
+    if (!user) {
+      Alert.alert(
+        'Login Diperlukan',
+        'Silakan login terlebih dahulu untuk melakukan peminjaman alat',
+        [
+          { text: 'Batal', style: 'cancel' },
+          { text: 'Login', onPress: () => router.push('/auth/login') }
+        ]
+      );
+      return;
+    }
+    
     if (!selectedAlat) {
       Alert.alert('Error', 'Pilih alat terlebih dahulu');
       return;
@@ -266,14 +280,18 @@ export default function PeminjamanAlatScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={[styles.header, { backgroundColor: colors.primary }]}>
-        <Text style={[styles.headerTitle, { fontFamily: Fonts.bold }]}>Peminjaman Alat</Text>
-        <Text style={[styles.headerSubtitle, { fontFamily: Fonts.regular }]}>
-          Borrow lab equipment
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={24} color="#FFF" />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { fontFamily: Fonts.bold }]}>
+          Peminjaman Alat
         </Text>
+        <View style={{ width: 40 }} />
       </View>
 
-      {/* Tab Switcher */}
-      <View style={[styles.tabContainer, { backgroundColor: colors.card }]}>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Tab Switcher */}
+        <View style={[styles.tabContainer, { backgroundColor: colors.card }]}>
         <TouchableOpacity
           style={[
             styles.tab,
@@ -304,7 +322,20 @@ export default function PeminjamanAlatScreen() {
             styles.tab,
             activeTab === 'riwayat' && { backgroundColor: colors.primary },
           ]}
-          onPress={() => setActiveTab('riwayat')}
+          onPress={() => {
+            if (!user) {
+              Alert.alert(
+                'Login Diperlukan',
+                'Silakan login terlebih dahulu untuk melihat riwayat peminjaman',
+                [
+                  { text: 'Batal', style: 'cancel' },
+                  { text: 'Login', onPress: () => router.push('/auth/login') }
+                ]
+              );
+              return;
+            }
+            setActiveTab('riwayat');
+          }}
         >
           <Ionicons 
             name="time" 
@@ -326,9 +357,18 @@ export default function PeminjamanAlatScreen() {
       </View>
 
       {/* Content */}
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {activeTab === 'peminjaman' ? (
+      {activeTab === 'peminjaman' ? (
           <>
+            {/* Login Info for non-logged users */}
+            {!user && (
+              <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
+                <Ionicons name="information-circle-outline" size={24} color={colors.primary} />
+                <Text style={[styles.infoText, { fontFamily: Fonts.regular, color: colors.text }]}>
+                  Silakan login terlebih dahulu untuk melakukan peminjaman alat
+                </Text>
+              </View>
+            )}
+            
             {/* Catalog Section */}
             <View style={[styles.catalogCard, { backgroundColor: colors.card }]}>
               <View style={styles.catalogHeader}>
@@ -400,6 +440,22 @@ export default function PeminjamanAlatScreen() {
                 }}
                 minDate={new Date().toISOString().split('T')[0]}
               />
+              
+              {/* Legend */}
+              <View style={styles.legend}>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: '#10B981' }]} />
+                  <Text style={[styles.legendText, { fontFamily: Fonts.regular, color: colors.icon }]}>
+                    Approved
+                  </Text>
+                </View>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: '#F59E0B' }]} />
+                  <Text style={[styles.legendText, { fontFamily: Fonts.regular, color: colors.icon }]}>
+                    Pending
+                  </Text>
+                </View>
+              </View>
             </View>
 
             {/* Form */}
@@ -628,19 +684,25 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingTop: Platform.OS === 'ios' ? 60 : 40,
-    paddingBottom: 24,
+    paddingBottom: 20,
     paddingHorizontal: isSmallScreen ? 16 : 20,
   },
-  headerTitle: {
-    fontSize: isSmallScreen ? 24 : 28,
-    color: '#FFF',
-    marginBottom: 4,
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  headerSubtitle: {
-    fontSize: isSmallScreen ? 13 : 14,
+  headerTitle: {
     color: '#FFF',
-    opacity: 0.9,
+    fontSize: isSmallScreen ? 16 : 18,
+    flex: 1,
+    textAlign: 'center',
   },
   tabContainer: {
     flexDirection: 'row',
@@ -765,6 +827,28 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: isSmallScreen ? 16 : 18,
     marginBottom: 16,
+  },
+  legend: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 24,
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.1)',
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  legendDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  legendText: {
+    fontSize: 12,
   },
   formCard: {
     marginHorizontal: isSmallScreen ? 16 : 20,
@@ -943,5 +1027,31 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.5,
+  },
+  infoCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginHorizontal: isSmallScreen ? 16 : 20,
+    marginTop: 20,
+    marginBottom: 16,
+    padding: isSmallScreen ? 14 : 16,
+    borderRadius: 12,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  infoText: {
+    flex: 1,
+    fontSize: isSmallScreen ? 13 : 14,
+    lineHeight: 20,
   },
 });

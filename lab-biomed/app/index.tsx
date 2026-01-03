@@ -6,8 +6,8 @@ export default function Index() {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect to tabs home page
-    router.replace('/(tabs)');
+    // Redirect to splash screen
+    router.replace('/splash');
   }, []);
 
   return (
