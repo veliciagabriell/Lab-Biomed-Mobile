@@ -1,7 +1,7 @@
 // API configuration
 // Untuk web: gunakan localhost
 // Untuk mobile (HP): ganti dengan IP Mac kamu (cek dengan: ipconfig getifaddr en0)
-export const API_URL = 'http://172.20.10.4:3000/api'; // Backend NestJS
+export const API_URL = 'https://lab-biomed-mobile-production.up.railway.app/api'; // Backend NestJS
 
 // API endpoints
 export const API_ENDPOINTS = {
