@@ -23,5 +23,5 @@ export class TugasAwal {
 
     @ManyToOne(() => Modul, (modul) => modul.tugasAwal, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'modul_id' })
-    modul: Modul;
+    modulRef?: Modul;
 }

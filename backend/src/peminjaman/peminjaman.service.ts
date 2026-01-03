@@ -78,7 +78,7 @@ export class PeminjamanService {
 
         let query: any = peminjamanCollection;
 
-        // Praktikan hanya bisa lihat peminjamannya sendiri
+        // // Praktikan hanya bisa lihat peminjamannya sendiri
         if (userRole === Role.PRAKTIKAN && userId) {
             query = query.where('userId', '==', userId);
         }
@@ -145,7 +145,7 @@ export class PeminjamanService {
         approvedBy: string,
         userRole: string
     ) {
-        // Only asisten can approve/reject
+        // // Only asisten can approve/reject
         if (userRole !== Role.ASISTEN) {
             throw new ForbiddenException('Hanya asisten yang bisa approve/reject peminjaman');
         }

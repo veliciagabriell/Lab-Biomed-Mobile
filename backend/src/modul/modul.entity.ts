@@ -41,7 +41,7 @@ export class Modul {
     })
     status: StatusModul;
 
-    @OneToMany(() => TugasAwal, (t) => t.modul)
+    @OneToMany(() => TugasAwal, (t) => t.modulRef)
     tugasAwal: TugasAwal[];
 
     @OneToMany(() => Presensi, (p) => p.modulRef)

@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Patch, Body, Param, HttpCode, HttpStatus, Request } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, HttpCode, HttpStatus, Request, ForbiddenException } from '@nestjs/common';
 import { PeminjamanAlatService } from './peminjaman-alat.service';
 import { CreatePeminjamanAlatDto } from './dto/create-peminjaman-alat.dto';
 import { UpdateStatusPeminjamanAlatDto } from './dto/update-status-peminjaman-alat.dto';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody, ApiResponse } from '@nestjs/swagger';
-import { Public } from '../auth/public.decorator';
+import { Role } from '../auth/role.enum';
 
 @ApiTags('Peminjaman Alat')
 @ApiBearerAuth('access-token')
@@ -11,7 +11,6 @@ import { Public } from '../auth/public.decorator';
 export class PeminjamanAlatController {
   constructor(private readonly peminjamanAlatService: PeminjamanAlatService) {}
 
-  @Public()
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create peminjaman alat' })
@@ -22,7 +21,6 @@ export class PeminjamanAlatController {
     return this.peminjamanAlatService.create(createDto, userId);
   }
 
-  @Public()
   @Get()
   @ApiOperation({ summary: 'Get all peminjaman alat' })
   @ApiResponse({ status: 200, description: 'List of peminjaman alat' })
@@ -32,16 +30,18 @@ export class PeminjamanAlatController {
     return this.peminjamanAlatService.findAll(userId, role);
   }
 
-  @Public()
   @Patch(':id/status')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update status peminjaman alat' })
   @ApiBody({ type: UpdateStatusPeminjamanAlatDto })
   @ApiResponse({ status: 200, description: 'Status berhasil diupdate' })
   async updateStatus(
-    @Param('id') id: string,
+    @Param('id') id: string, @Request() req: any,
     @Body() updateDto: UpdateStatusPeminjamanAlatDto,
   ) {
+    if (req.user?.role !== Role.ASISTEN) {
+        throw new ForbiddenException('Hanya asisten yang dapat mengakses ini');
+    }
     return this.peminjamanAlatService.updateStatus(id, updateDto);
   }
 }
