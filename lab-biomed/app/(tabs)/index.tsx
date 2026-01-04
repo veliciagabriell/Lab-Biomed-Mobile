@@ -130,6 +130,7 @@ export default function HomeScreen() {
           <TouchableOpacity 
             style={[styles.actionCard, { backgroundColor: colors.primary }]}
             activeOpacity={0.7}
+            onPress={() => router.push('/peminjaman/lab')}
           >
             <Ionicons name="calendar-outline" size={isSmallScreen ? 28 : 32} color="#FFF" />
             <Text style={[styles.actionTitle, { fontFamily: Fonts.semiBold }]}>
@@ -143,6 +144,7 @@ export default function HomeScreen() {
           <TouchableOpacity 
             style={[styles.actionCard, { backgroundColor: colors.secondary }]}
             activeOpacity={0.7}
+            onPress={() => router.push('/peminjaman/alat')}
           >
             <Ionicons name="flask-outline" size={isSmallScreen ? 28 : 32} color="#FFF" />
             <Text style={[styles.actionTitle, { fontFamily: Fonts.semiBold }]}>
@@ -156,6 +158,7 @@ export default function HomeScreen() {
           <TouchableOpacity 
             style={[styles.actionCard, { backgroundColor: colors.accent }]}
             activeOpacity={0.7}
+            onPress={() => router.push('/(tabs)/praktikum')}
           >
             <Ionicons name="school-outline" size={isSmallScreen ? 28 : 32} color="#FFF" />
             <Text style={[styles.actionTitle, { fontFamily: Fonts.semiBold }]}>
@@ -169,6 +172,7 @@ export default function HomeScreen() {
           <TouchableOpacity 
             style={[styles.actionCard, { backgroundColor: '#8B5CF6' }]}
             activeOpacity={0.7}
+            onPress={() => router.push('/aturan/aturan-praktikum')}
           >
             <Ionicons name="document-text-outline" size={isSmallScreen ? 28 : 32} color="#FFF" />
             <Text style={[styles.actionTitle, { fontFamily: Fonts.semiBold }]}>
