@@ -1,13 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString, IsNumber, IsOptional } from 'class-validator';
-import { PrimaryGeneratedColumn } from 'typeorm';
 
 export class SubmitTugasDto {
-    @PrimaryGeneratedColumn('increment')
-    @ApiProperty({ example: 1, description: 'Auto-generated submission id', required: false })
-    @IsOptional()
-    submissionId?: number;
-
     @ApiProperty({ example: 'Praktikan 1'})
     @IsNotEmpty()
     @IsString()
@@ -26,5 +20,10 @@ export class SubmitTugasDto {
     @ApiProperty({ example: 100})
     @IsOptional()
     @IsNumber()
-    nilai: number;
+    nilai?: number;
+
+    @ApiProperty({ example: 1, description: 'Module ID (set from URL param)' })
+    @IsOptional()
+    @IsNumber()
+    modulId?: number;
 }

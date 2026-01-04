@@ -30,22 +30,68 @@ export class TugasAwalService{
 
     // post untuk kumpul tugas 
     async submitTugas(submitTugasDto: SubmitTugasDto) {
-        const firestore = this.firebaseService.getFirestore();
+        try {
+            const firestore = this.firebaseService.getFirestore();
 
-        if (!firestore) {
-            throw new InternalServerErrorException('Firestore not initialized');
+            if (!firestore) {
+                throw new InternalServerErrorException('Firestore not initialized');
+            }
+            
+            // Validate required fields
+            if (!submitTugasDto.modulId) {
+                throw new BadRequestException('modulId is required');
+            }
+            
+            if (!submitTugasDto.nim) {
+                throw new BadRequestException('nim is required');
+            }
+            
+            console.log('Submitting tugas with data:', JSON.stringify(submitTugasDto, null, 2));
+            
+            const submissionTugasCollection = firestore.collection('tugas-awal');
+            // Use combination of nim and modulId as document ID to prevent duplicates
+            const docId = `${submitTugasDto.nim}_${submitTugasDto.modulId}`;
+            const docRef = submissionTugasCollection.doc(docId);
+            
+            // Check if already submitted
+            const existingDoc = await docRef.get();
+            if (existingDoc.exists) {
+                throw new BadRequestException('Tugas awal sudah pernah disubmit. Tidak bisa submit ulang.');
+            }
+            
+            const timestamp = new Date().toISOString();
+            
+            const submissionData = {
+                nim: submitTugasDto.nim,
+                nama: submitTugasDto.nama,
+                submission_url: submitTugasDto.submission_url,
+                nilai: submitTugasDto.nilai ?? null,
+                modulId: submitTugasDto.modulId,
+                submittedAt: timestamp,
+            };
+            
+            console.log('Saving to Firestore with docId:', docId);
+            console.log('Submission data:', JSON.stringify(submissionData, null, 2));
+            
+            await docRef.set(submissionData);
+            
+            console.log('Successfully saved to Firestore!');
+
+            return {
+                ...submissionData,
+                submissionId: docId,
+            };
+        } catch (error) {
+            console.error('Error in submitTugas:', error);
+            console.error('Error stack:', error.stack);
+            
+            // Re-throw BadRequestException as is
+            if (error instanceof BadRequestException) {
+                throw error;
+            }
+            
+            throw new InternalServerErrorException(`Failed to submit tugas: ${error.message}`);
         }
-        const submissionTugasCollection = firestore.collection('submission-tugas-awal');
-        const docRef = submissionTugasCollection.doc(String(submitTugasDto.nim));
-        await docRef.set({ ...submitTugasDto });
-
-        return {
-            submissionId: submitTugasDto.submissionId ?? null,
-            nim: submitTugasDto.nim ?? null,
-            nama: submitTugasDto.nama ?? null,
-            submission_url: submitTugasDto.submission_url ?? null,
-            nilai: submitTugasDto.nilai ?? null,
-        };
     }
 
     // asisten
@@ -53,7 +99,7 @@ export class TugasAwalService{
     async getSubmission(modulId?: number): Promise<any[]> {
         const firestore = this.firebaseService.getFirestore()
         if (!firestore) throw new NotFoundException('Firestore not initialized');
-        const col = firestore.collection('submission-tugas-awal');
+        const col = firestore.collection('tugas-awal');
         const q = (modulId !== undefined && modulId !== null)
             ? await col.where('modulId', '==', modulId).get()
             : await col.get();
@@ -68,6 +114,8 @@ export class TugasAwalService{
                 nama: data.nama ?? null,
                 submission_url: data.submission_url ?? null,
                 nilai: data.nilai ?? null,
+                modulId: data.modulId ?? null,
+                submittedAt: data.submittedAt ?? null,
             };
         });
     }
@@ -90,39 +138,38 @@ export class TugasAwalService{
     }
 
     // kasih nilai untuk patch nilai
-    async giveNilai(submissionId: number, submitTugasDto: SubmitTugasDto): Promise<any> {
+    async giveNilai(submissionId: string, submitTugasDto: SubmitTugasDto): Promise<any> {
         const firestore = this.firebaseService.getFirestore()
         if (!firestore) throw new NotFoundException('Firestore not initialized');
-        const col = firestore.collection('submission-tugas-awal');
+        const col = firestore.collection('tugas-awal');
 
-        const q = await col.where('submissionId', '==', submissionId).get();
+        // submissionId already in format: nim_modulId
+        const docRef = col.doc(submissionId);
+        const doc = await docRef.get();
 
-        if (q.empty) {
-            throw new NotFoundException('Belum ada submission dengan Id itu');
+        if (!doc.exists) {
+            throw new NotFoundException('Submission tidak ditemukan');
         }
 
         if (submitTugasDto.nilai !== undefined && (submitTugasDto.nilai < 0 || submitTugasDto.nilai > 100)) {
             throw new BadRequestException('Nilai harus 0-100');
         }
 
-        const doc = q.docs[0];
         const existing = (doc.data() || {}) as any;
         const updated = {
-            submissionId: submitTugasDto.submissionId ?? existing.submissionId,
-            nim: submitTugasDto.nim ?? existing.nim,
-            nama: submitTugasDto.nama ?? existing.nama,
-            submission_url: submitTugasDto.submission_url ?? existing.submission_url,
+            nim: existing.nim,
+            nama: existing.nama,
+            submission_url: existing.submission_url,
             nilai: submitTugasDto.nilai ?? existing.nilai,
+            modulId: existing.modulId,
+            submittedAt: existing.submittedAt,
         };
 
-        await doc.ref.update(updated);
+        await docRef.update(updated);
 
         return {
-            submissionId: updated.submissionId ?? null,
-            nim: updated.nim ?? null,
-            nama: updated.nama ?? null,
-            submission_url: updated.submission_url ?? null,
-            nilai: updated.nilai ?? null,
+            ...updated,
+            submissionId: submissionId,
         };
     }
 }

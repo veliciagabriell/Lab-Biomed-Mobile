@@ -1,0 +1,168 @@
+
+> backend@0.0.1 start:dev
+> nest start --watch
+
+[2J[3J[H[[90m6:45:53 PM[0m] Starting compilation in watch mode...
+
+[[90m6:45:55 PM[0m] Found 0 errors. Watching for file changes.
+
+[dotenv@17.2.3] injecting env (5) from .env -- tip: ⚙️  enable debug logging with { debug: true }
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ✅ audit secrets and track compliance: https://dotenvx.com/ops
+DEBUG firebase: searched service account paths, found= /Users/macbookairm2/Documents/PAWM/Lab-Biomed-Mobile/backend/firebase-service-account.json
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+FirebaseService: using existing admin app
+JwtStrategy initialized
+FirebaseService: using existing admin app
+FirebaseService: using existing admin app
+FirebaseService: using existing admin app
+FirebaseService: using existing admin app
+FirebaseService: using existing admin app
+FirebaseService: using existing admin app
+FirebaseService: using existing admin app
+FirebaseService: using existing admin app
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPassportModule dependencies initialized[39m[38;5;3m +9ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mJwtModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPeminjamanAlatModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAuthModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPraktikumModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUsersModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mModulModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPresensiModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTugasAwalModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPeminjamanModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAppController {/}:[39m[38;5;3m +41ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/health, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAuthController {/api/auth}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/auth/register, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/auth/login, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mPraktikumController {/api/praktikum}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/praktikum/:id, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mUsersController {/api/users}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/users/profile/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mModulController {/api/modul}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/modul/praktikum/:praktikumId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/modul/detail/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/modul/praktikum, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mPresensiController {/api/presensi}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/presensi/modul/:modulId, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/presensi/modul/:modulId, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mPeminjamanController {/api/peminjaman}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/peminjaman, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/peminjaman, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/peminjaman/date/:date, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/peminjaman/slots/:date, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/peminjaman/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/peminjaman/:id/status, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/peminjaman/:id/cancel, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mPeminjamanAlatController {/api/peminjaman-alat}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/peminjaman-alat, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/peminjaman-alat, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/peminjaman-alat/:id/status, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mTugasAwalController {/api/tugas-awal}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/tugas-awal/modul/:modulId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/tugas-awal/modul/:modulId/submission, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/tugas-awal/modul/:modulId/submission, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/tugas-awal/modul/:modulId, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/tugas-awal/modul/:modulId/submission/:submissionId/grade, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +1ms[39m
+[31m[Nest] 98516  - [39m01/04/2026, 6:45:56 PM [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use 0.0.0.0:3000[39m[38;5;3m +7ms[39m
+node:net:1904
+    const ex = new UVExceptionWithHostPort(err, 'listen', address, port);
+               ^
+
+Error: listen EADDRINUSE: address already in use 0.0.0.0:3000
+    at Server.setupListenHandle [as _listen2] (node:net:1904:16)
+    at listenInCluster (node:net:1961:12)
+    at doListen (node:net:2135:7)
+    at process.processTicksAndRejections (node:internal/process/task_queues:83:21) {
+  code: 'EADDRINUSE',
+  errno: -48,
+  syscall: 'listen',
+  address: '0.0.0.0',
+  port: 3000
+}
+
+Node.js v20.16.0
+[2J[3J[H[[90m6:46:32 PM[0m] File change detected. Starting incremental compilation...
+
+[[90m6:46:33 PM[0m] Found 0 errors. Watching for file changes.
+
+[dotenv@17.2.3] injecting env (5) from .env -- tip: 🔑 add access controls to secrets: https://dotenvx.com/ops
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+DEBUG firebase: searched service account paths, found= /Users/macbookairm2/Documents/PAWM/Lab-Biomed-Mobile/backend/firebase-service-account.json
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+FirebaseService: using existing admin app
+JwtStrategy initialized
+FirebaseService: using existing admin app
+FirebaseService: using existing admin app
+FirebaseService: using existing admin app
+FirebaseService: using existing admin app
+FirebaseService: using existing admin app
+FirebaseService: using existing admin app
+FirebaseService: using existing admin app
+FirebaseService: using existing admin app
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPassportModule dependencies initialized[39m[38;5;3m +9ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mJwtModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPeminjamanAlatModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAuthModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPraktikumModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUsersModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mModulModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPresensiModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTugasAwalModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPeminjamanModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAppController {/}:[39m[38;5;3m +47ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/health, GET} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAuthController {/api/auth}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/auth/register, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/auth/login, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mPraktikumController {/api/praktikum}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/praktikum/:id, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mUsersController {/api/users}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/users/profile/:id, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mModulController {/api/modul}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/modul/praktikum/:praktikumId, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/modul/detail/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/modul/praktikum, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mPresensiController {/api/presensi}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/presensi/modul/:modulId, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/presensi/modul/:modulId, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mPeminjamanController {/api/peminjaman}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/peminjaman, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/peminjaman, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/peminjaman/date/:date, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/peminjaman/slots/:date, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/peminjaman/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/peminjaman/:id/status, PATCH} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/peminjaman/:id/cancel, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mPeminjamanAlatController {/api/peminjaman-alat}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/peminjaman-alat, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/peminjaman-alat, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/peminjaman-alat/:id/status, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mTugasAwalController {/api/tugas-awal}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/tugas-awal/modul/:modulId, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/tugas-awal/modul/:modulId/submission, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/tugas-awal/modul/:modulId/submission, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/tugas-awal/modul/:modulId, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/tugas-awal/modul/:modulId/submission/:submissionId/grade, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +2ms[39m
+[31m[Nest] 98586  - [39m01/04/2026, 6:46:35 PM [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use 0.0.0.0:3000[39m[38;5;3m +17ms[39m
+node:net:1904
+    const ex = new UVExceptionWithHostPort(err, 'listen', address, port);
+               ^
+
+Error: listen EADDRINUSE: address already in use 0.0.0.0:3000
+    at Server.setupListenHandle [as _listen2] (node:net:1904:16)
+    at listenInCluster (node:net:1961:12)
+    at doListen (node:net:2135:7)
+    at process.processTicksAndRejections (node:internal/process/task_queues:83:21) {
+  code: 'EADDRINUSE',
+  errno: -48,
+  syscall: 'listen',
+  address: '0.0.0.0',
+  port: 3000
+}
+
+Node.js v20.16.0

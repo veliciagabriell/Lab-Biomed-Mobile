@@ -62,7 +62,7 @@ export default function ExploreScreen() {
       showsVerticalScrollIndicator={false}
     >
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: '#FF4E05' }]}>
+      <View style={[styles.header, { backgroundColor: colors.primary }]}>
         <Text style={[styles.headerTitle, { fontFamily: Fonts.bold }]}>
           More
         </Text>
@@ -107,13 +107,33 @@ export default function ExploreScreen() {
               style={[styles.menuCard, { backgroundColor: colors.card }]}
               activeOpacity={0.7}
               onPress={() => {
-                if (item.title === 'Aturan Lab') {
-                  router.push('/aturan/aturan-praktikum');
-                }
-                else if (item.title === 'Praktikum') {
-                  router.push('/(tabs)/praktikum');
-                } else {
-                  Alert.alert('Coming Soon', `${item.title} feature will be available soon`);
+                switch (item.title) {
+                  case 'About Us':
+                    router.push('/about-us');
+                    break;
+                  case 'Research':
+                    router.push('/research');
+                    break;
+                  case 'Activities':
+                    router.push('/activities');
+                    break;
+                  case 'Lecturers':
+                    router.push('/lecturers');
+                    break;
+                  case 'Assistants':
+                    router.push('/assistants');
+                    break;
+                  case 'Contacts':
+                    router.push('/contacts');
+                    break;
+                  case 'Aturan Lab':
+                    router.push('/aturan-lab');
+                    break;
+                  case 'Praktikum':
+                    router.push('/(tabs)/praktikum');
+                    break;
+                  default:
+                    Alert.alert('Coming Soon', `${item.title} feature will be available soon`);
                 }
               }}
             >

@@ -192,7 +192,10 @@ export default function HomeScreen() {
         </Text>
         
         <View style={styles.aboutGrid}>
-          <TouchableOpacity style={styles.aboutItem}>
+          <TouchableOpacity 
+            style={styles.aboutItem}
+            onPress={() => router.push('/research')}
+          >
             <View style={[styles.aboutIcon, { backgroundColor: colors.primary + '20' }]}>
               <Ionicons name="search" size={24} color={colors.primary} />
             </View>
@@ -201,7 +204,10 @@ export default function HomeScreen() {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.aboutItem}>
+          <TouchableOpacity 
+            style={styles.aboutItem}
+            onPress={() => router.push('/activities')}
+          >
             <View style={[styles.aboutIcon, { backgroundColor: colors.secondary + '20' }]}>
               <Ionicons name="pulse" size={24} color={colors.secondary} />
             </View>
@@ -210,7 +216,10 @@ export default function HomeScreen() {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.aboutItem}>
+          <TouchableOpacity 
+            style={styles.aboutItem}
+            onPress={() => router.push('/lecturers')}
+          >
             <View style={[styles.aboutIcon, { backgroundColor: colors.accent + '20' }]}>
               <Ionicons name="people" size={24} color={colors.accent} />
             </View>
@@ -219,7 +228,10 @@ export default function HomeScreen() {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.aboutItem}>
+          <TouchableOpacity 
+            style={styles.aboutItem}
+            onPress={() => router.push('/assistants')}
+          >
             <View style={[styles.aboutIcon, { backgroundColor: '#8B5CF6' + '20' }]}>
               <Ionicons name="person" size={24} color="#8B5CF6" />
             </View>

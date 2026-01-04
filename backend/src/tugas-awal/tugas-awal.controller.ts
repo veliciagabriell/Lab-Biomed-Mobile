@@ -29,8 +29,10 @@ export class TugasAwalController {
         @Param('modulId', ParseIntPipe) modulId: number,
         @Body() submitTugasDto: SubmitTugasDto,
     ) {
-        submitTugasDto.submissionId = submitTugasDto.submissionId ?? submitTugasDto.submissionId;
-        (submitTugasDto as any).modulId = modulId;
+        console.log('Received modulId from URL:', modulId);
+        console.log('Received body:', JSON.stringify(submitTugasDto, null, 2));
+        submitTugasDto.modulId = modulId;
+        console.log('After setting modulId:', JSON.stringify(submitTugasDto, null, 2));
         return await this.tugasAwalService.submitTugas(submitTugasDto);
     }
 
@@ -72,7 +74,8 @@ export class TugasAwalController {
     @ApiResponse({ status: 401, description: 'Tidak berhasil memberikan nilai'})
     async giveNilai(
         @Param('modulId', ParseIntPipe) modulId: number,
-        @Param('submissionId', ParseIntPipe) submissionId: number, @Request() req: any,
+        @Param('submissionId') submissionId: string,
+        @Request() req: any,
         @Body() submitTugasDto: SubmitTugasDto,
     ) {
         if (req.user?.role !== Role.ASISTEN) {

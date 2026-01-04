@@ -9,6 +9,9 @@ import {
   Alert,
   ActivityIndicator,
   TextInput,
+  Linking,
+  Modal,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { useState, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
@@ -23,7 +26,7 @@ import * as DocumentPicker from 'expo-document-picker';
 const { width } = Dimensions.get('window');
 const isSmallScreen = width < 375;
 
-type TabType = 'deskripsi' | 'tujuan' | 'dasarTeori' | 'alatBahan' | 'prosedur';
+type TabType = 'dasarTeori' | 'alatBahan' | 'prosedur' | 'tugasAwal' | 'presensi';
 
 export default function ModulDetailScreen() {
   const router = useRouter();
@@ -34,12 +37,24 @@ export default function ModulDetailScreen() {
 
   const [modul, setModul] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<TabType>('deskripsi');
+  const [activeTab, setActiveTab] = useState<TabType>('dasarTeori');
   
   // Tugas Awal State
-  const [selectedFile, setSelectedFile] = useState<any>(null);
+  const [driveLink, setDriveLink] = useState('');
   const [uploadingTugas, setUploadingTugas] = useState(false);
   const [tugasStatus, setTugasStatus] = useState<any>(null);
+  const [soalTugas, setSoalTugas] = useState<any>(null);
+  const [loadingSoal, setLoadingSoal] = useState(false);
+  
+  // Asisten - Upload Soal State
+  const [soalDriveLink, setSoalDriveLink] = useState('');
+  const [uploadingSoal, setUploadingSoal] = useState(false);
+  
+  // Asisten - Beri Nilai State
+  const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
+  const [nilaiInput, setNilaiInput] = useState('');
+  const [givingNilai, setGivingNilai] = useState(false);
+  const [showNilaiModal, setShowNilaiModal] = useState(false);
   
   // Presensi State
   const [nim, setNim] = useState('');
@@ -55,7 +70,6 @@ export default function ModulDetailScreen() {
   useEffect(() => {
     if (id) {
       loadModulDetail();
-      checkTugasStatus();
       if (user?.role === 'asisten') {
         loadAsistenData();
       }
@@ -68,6 +82,25 @@ export default function ModulDetailScreen() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  // Load data when switching to Tugas Awal tab
+  useEffect(() => {
+    if (activeTab === 'tugasAwal') {
+      loadSoalTugas();
+      if (user?.nim) {
+        checkTugasStatus();
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, user?.nim]);
+
+  // Load asisten data when switching to Presensi tab
+  useEffect(() => {
+    if (activeTab === 'presensi' && user?.role === 'asisten') {
+      loadAsistenData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, user?.role]);
 
   const loadModulDetail = async () => {
     try {
@@ -98,8 +131,9 @@ export default function ModulDetailScreen() {
     
     try {
       const token = await AsyncStorage.getItem('userToken');
+      // Check if user already submitted by getting all submissions and filtering
       const response = await fetch(
-        `${API_URL}/tugas-awal/modul/${id}/status?nim=${user.nim}`,
+        `${API_URL}/tugas-awal/modul/${id}/submission`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -108,11 +142,17 @@ export default function ModulDetailScreen() {
       );
 
       if (response.ok) {
-        const data = await response.json();
-        setTugasStatus(data);
+        const submissions = await response.json();
+        const userSubmission = Array.isArray(submissions) 
+          ? submissions.find((s: any) => s.nim === user.nim)
+          : null;
+        setTugasStatus(userSubmission ? { submitted: true, ...userSubmission } : { submitted: false });
+      } else {
+        setTugasStatus({ submitted: false });
       }
     } catch (error) {
       console.error('Error checking tugas status:', error);
+      setTugasStatus({ submitted: false });
     }
   };
 
@@ -127,16 +167,22 @@ export default function ModulDetailScreen() {
       });
       if (presensiResponse.ok) {
         const presensiData = await presensiResponse.json();
+        console.log('Presensi data:', presensiData);
         setPresensiList(Array.isArray(presensiData) ? presensiData : []);
+      } else {
+        console.error('Failed to load presensi:', presensiResponse.status);
       }
 
-      // Load tugas awal list
-      const tugasResponse = await fetch(`${API_URL}/tugas-awal/modul/${id}`, {
+      // Load tugas awal submission list (endpoint berbeda untuk asisten)
+      const tugasResponse = await fetch(`${API_URL}/tugas-awal/modul/${id}/submission`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (tugasResponse.ok) {
         const tugasData = await tugasResponse.json();
+        console.log('Tugas awal submissions:', tugasData);
         setTugasAwalList(Array.isArray(tugasData) ? tugasData : []);
+      } else {
+        console.error('Failed to load tugas submissions:', tugasResponse.status);
       }
     } catch (error) {
       console.error('Error loading asisten data:', error);
@@ -145,25 +191,83 @@ export default function ModulDetailScreen() {
     }
   };
 
-  const handlePickDocument = async () => {
+  const loadSoalTugas = async () => {
+    setLoadingSoal(true);
     try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: '*/*',
-        copyToCacheDirectory: true,
+      const token = await AsyncStorage.getItem('userToken');
+      const response = await fetch(`${API_URL}/tugas-awal/modul/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        setSelectedFile(result.assets[0]);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Soal tugas data:', data);
+        // data is array, get first item if exists
+        setSoalTugas(Array.isArray(data) && data.length > 0 ? data[0] : null);
+      } else {
+        console.error('Failed to load soal:', response.status);
+        setSoalTugas(null);
       }
     } catch (error) {
-      console.error('Error picking document:', error);
-      Alert.alert('Error', 'Gagal memilih file');
+      console.error('Error loading soal:', error);
+      setSoalTugas(null);
+    } finally {
+      setLoadingSoal(false);
+    }
+  };
+
+  const handleUploadSoal = async () => {
+    if (!soalDriveLink.trim()) {
+      Alert.alert('Error', 'Masukkan link Google Drive soal');
+      return;
+    }
+
+    // Validate Google Drive link
+    if (!soalDriveLink.includes('drive.google.com')) {
+      Alert.alert('Error', 'Link harus dari Google Drive');
+      return;
+    }
+
+    setUploadingSoal(true);
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      const response = await fetch(`${API_URL}/tugas-awal/modul/${id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          tugas_url: soalDriveLink,
+          modulId: parseInt(id as string),
+        }),
+      });
+
+      if (response.ok) {
+        Alert.alert('Berhasil', 'Soal tugas awal berhasil diupload!');
+        setSoalDriveLink('');
+        await loadSoalTugas();
+      } else {
+        const error = await response.json();
+        Alert.alert('Error', error.message || 'Gagal upload soal');
+      }
+    } catch (error) {
+      console.error('Error uploading soal:', error);
+      Alert.alert('Error', 'Terjadi kesalahan saat upload soal');
+    } finally {
+      setUploadingSoal(false);
     }
   };
 
   const handleUploadTugas = async () => {
-    if (!selectedFile) {
-      Alert.alert('Error', 'Pilih file terlebih dahulu');
+    if (!driveLink.trim()) {
+      Alert.alert('Error', 'Masukkan link Google Drive jawaban');
+      return;
+    }
+
+    // Validate Google Drive link
+    if (!driveLink.includes('drive.google.com')) {
+      Alert.alert('Error', 'Link harus dari Google Drive');
       return;
     }
 
@@ -174,36 +278,138 @@ export default function ModulDetailScreen() {
 
     setUploadingTugas(true);
     try {
-      // For now, we'll use a placeholder URL. In production, upload to Firebase Storage first
-      const fileUrl = `https://storage.example.com/tugas/${user.nim}/${selectedFile.name}`;
-
       const token = await AsyncStorage.getItem('userToken');
-      const response = await fetch(`${API_URL}/tugas-awal/modul/${id}`, {
+      
+      const payload = {
+        nama: user.email.split('@')[0],
+        nim: user.nim,
+        submission_url: driveLink,
+      };
+      
+      console.log('===== SUBMIT TUGAS AWAL =====');
+      console.log('Module ID from params:', id);
+      console.log('Payload:', JSON.stringify(payload, null, 2));
+      
+      const apiResponse = await fetch(`${API_URL}/tugas-awal/modul/${id}/submission`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          nama: user.email.split('@')[0],
-          nim: user.nim,
-          submission_url: fileUrl,
-        }),
+        body: JSON.stringify(payload),
       });
 
-      if (response.ok) {
+      console.log('Response status:', apiResponse.status);
+      
+      if (apiResponse.ok) {
+        const result = await apiResponse.json();
+        console.log('Submit success:', result);
         Alert.alert('Berhasil', 'Tugas awal berhasil disubmit!');
-        setSelectedFile(null);
+        setDriveLink('');
         await checkTugasStatus();
+        // Reload asisten data if asisten
+        if (user?.role === 'asisten') {
+          await loadAsistenData();
+        }
       } else {
-        const error = await response.json();
-        Alert.alert('Error', error.message || 'Gagal submit tugas awal');
+        const errorText = await apiResponse.text();
+        console.error('Submit failed:', errorText);
+        try {
+          const error = JSON.parse(errorText);
+          Alert.alert('Error', error.message || 'Gagal submit tugas awal');
+        } catch {
+          Alert.alert('Error', 'Gagal submit tugas awal');
+        }
       }
     } catch (error) {
       console.error('Error uploading tugas:', error);
-      Alert.alert('Error', 'Terjadi kesalahan saat submit tugas');
+      Alert.alert('Error', 'Terjadi kesalahan saat submit tugas: ' + (error as Error).message);
     } finally {
       setUploadingTugas(false);
+    }
+  };
+
+  const handleGiveNilai = async () => {
+    console.log('=== HANDLE GIVE NILAI START ===');
+    console.log('nilaiInput:', nilaiInput);
+    console.log('selectedSubmission:', selectedSubmission);
+    
+    if (!nilaiInput.trim()) {
+      Alert.alert('Error', 'Masukkan nilai');
+      return;
+    }
+
+    const nilai = parseInt(nilaiInput);
+    if (isNaN(nilai) || nilai < 0 || nilai > 100) {
+      Alert.alert('Error', 'Nilai harus antara 0-100');
+      return;
+    }
+
+    setGivingNilai(true);
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      const submissionId = `${selectedSubmission.nim}_${id}`;
+      
+      console.log('submissionId:', submissionId);
+      console.log('id:', id);
+      console.log('API URL:', `${API_URL}/tugas-awal/modul/${id}/submission/${submissionId}/grade`);
+      console.log('Body:', JSON.stringify({
+        nim: selectedSubmission.nim,
+        nama: selectedSubmission.nama,
+        submission_url: selectedSubmission.submission_url,
+        modulId: parseInt(id as string),
+        nilai: nilai,
+      }));
+      
+      const response = await fetch(
+        `${API_URL}/tugas-awal/modul/${id}/submission/${submissionId}/grade`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            nim: selectedSubmission.nim,
+            nama: selectedSubmission.nama,
+            submission_url: selectedSubmission.submission_url,
+            modulId: parseInt(id as string),
+            nilai: nilai,
+          }),
+        }
+      );
+
+      console.log('Response status:', response.status);
+      const responseText = await response.text();
+      console.log('Response text:', responseText);
+
+      if (response.ok) {
+        const result = JSON.parse(responseText);
+        console.log('Success result:', result);
+        Alert.alert('Berhasil', `Nilai ${nilai} berhasil diberikan!`);
+        setShowNilaiModal(false);
+        setNilaiInput('');
+        setSelectedSubmission(null);
+        await loadAsistenData();
+      } else {
+        try {
+          const error = JSON.parse(responseText);
+          console.error('Error response:', error);
+          Alert.alert('Error', error.message || 'Gagal memberi nilai');
+        } catch (parseError) {
+          console.error('Parse error:', parseError);
+          Alert.alert('Error', responseText || 'Gagal memberi nilai');
+        }
+      }
+    } catch (error) {
+      console.error('=== ERROR GIVING NILAI ===');
+      console.error('Error:', error);
+      console.error('Error message:', (error as Error).message);
+      console.error('Error stack:', (error as Error).stack);
+      Alert.alert('Error', 'Terjadi kesalahan: ' + (error as Error).message);
+    } finally {
+      setGivingNilai(false);
+      console.log('=== HANDLE GIVE NILAI END ===');
     }
   };
 
@@ -250,203 +456,341 @@ export default function ModulDetailScreen() {
     }
   };
 
+  const handleViewFile = async (url: string) => {
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert(
+          'File URL', 
+          url,
+          [
+            { text: 'Copy', onPress: () => {
+              // In production, use Clipboard API
+              Alert.alert('URL', url);
+            }},
+            { text: 'OK' }
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('Error opening URL:', error);
+      Alert.alert('File URL', url);
+    }
+  };
+
   const renderTabContent = () => {
     if (!modul) return null;
 
-    const content = {
-      deskripsi: modul.deskripsi,
-      tujuan: modul.tujuan,
-      dasarTeori: modul.dasarTeori,
-      alatBahan: modul.alatBahan,
-      prosedur: modul.prosedur,
-    };
+    // Render Dasar Teori, Alat & Bahan, Prosedur
+    if (activeTab === 'dasarTeori' || activeTab === 'alatBahan' || activeTab === 'prosedur') {
+      const content = {
+        dasarTeori: modul.dasarTeori,
+        alatBahan: modul.alatBahan,
+        prosedur: modul.prosedur,
+      };
 
-    return (
-      <View style={[styles.contentCard, { backgroundColor: colors.card }]}>
-        <Text style={[styles.contentText, { fontFamily: Fonts.regular, color: colors.text }]}>
-          {content[activeTab] || 'Belum ada konten'}
-        </Text>
-      </View>
-    );
-  };
-
-  if (loading) {
-    return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={[styles.header, { backgroundColor: colors.primary }]}>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="#FFF" />
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { fontFamily: Fonts.bold }]}>Detail Modul</Text>
-          <View style={{ width: 40 }} />
-        </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={[styles.loadingText, { fontFamily: Fonts.regular, color: colors.icon }]}>
-            Memuat detail modul...
+      return (
+        <View style={[styles.contentCard, { backgroundColor: colors.card }]}>
+          <Text style={[styles.contentText, { fontFamily: Fonts.regular, color: colors.text }]}>
+            {content[activeTab] || 'Belum ada konten'}
           </Text>
         </View>
-      </View>
-    );
-  }
+      );
+    }
 
-  if (!modul) {
-    return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={[styles.header, { backgroundColor: colors.primary }]}>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="#FFF" />
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { fontFamily: Fonts.bold }]}>Detail Modul</Text>
-          <View style={{ width: 40 }} />
-        </View>
-        <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle" size={64} color={colors.icon} />
-          <Text style={[styles.errorText, { fontFamily: Fonts.regular, color: colors.icon }]}>
-            Modul tidak ditemukan
-          </Text>
-        </View>
-      </View>
-    );
-  }
-
-  return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header */}
-      <View style={[styles.header, { backgroundColor: colors.primary }]}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#FFF" />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { fontFamily: Fonts.bold }]} numberOfLines={1}>
-          {modul.judul}
-        </Text>
-        <View style={{ width: 40 }} />
-      </View>
-
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Tabs */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.tabsContainer}
-          contentContainerStyle={styles.tabsContent}
-        >
-          {[
-            { key: 'deskripsi' as TabType, label: 'Deskripsi', icon: 'document-text' },
-            { key: 'tujuan' as TabType, label: 'Tujuan', icon: 'flag' },
-            { key: 'dasarTeori' as TabType, label: 'Dasar Teori', icon: 'book' },
-            { key: 'alatBahan' as TabType, label: 'Alat & Bahan', icon: 'construct' },
-            { key: 'prosedur' as TabType, label: 'Prosedur', icon: 'list' },
-          ].map((tab) => (
-            <TouchableOpacity
-              key={tab.key}
-              style={[
-                styles.tab,
-                { backgroundColor: activeTab === tab.key ? colors.primary : colors.card },
-              ]}
-              onPress={() => setActiveTab(tab.key)}
-            >
-              <Ionicons
-                name={tab.icon as any}
-                size={18}
-                color={activeTab === tab.key ? '#FFF' : colors.icon}
-              />
-              <Text
-                style={[
-                  styles.tabText,
-                  {
-                    fontFamily: activeTab === tab.key ? Fonts.semiBold : Fonts.regular,
-                    color: activeTab === tab.key ? '#FFF' : colors.text,
-                  },
-                ]}
-              >
-                {tab.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        {/* Tab Content */}
-        {renderTabContent()}
-
-        {/* Tugas Awal Section */}
-        <View style={[styles.sectionCard, { backgroundColor: colors.card }]}>
-          <View style={styles.sectionHeader}>
-            <Ionicons name="document" size={24} color={colors.primary} />
-            <Text style={[styles.sectionTitle, { fontFamily: Fonts.semiBold, color: colors.text }]}>
-              Tugas Awal
-            </Text>
-          </View>
-
-          {tugasStatus?.submitted ? (
-            <View style={[styles.statusBanner, { backgroundColor: '#10B98120' }]}>
-              <Ionicons name="checkmark-circle" size={20} color="#10B981" />
-              <Text style={[styles.statusText, { fontFamily: Fonts.medium, color: '#10B981' }]}>
-                Tugas sudah disubmit
+    // Render Tugas Awal Tab
+    if (activeTab === 'tugasAwal') {
+      // Asisten View
+      if (user?.role === 'asisten') {
+        return (
+          <View style={[styles.contentCard, { backgroundColor: colors.card }]}>
+            {/* Upload Soal Section */}
+            <View style={styles.sectionHeader}>
+              <Ionicons name="cloud-upload" size={24} color={colors.primary} />
+              <Text style={[styles.sectionTitle, { fontFamily: Fonts.semiBold, color: colors.text }]}>
+                Upload Soal Tugas Awal
               </Text>
             </View>
-          ) : (
-            <>
-              {selectedFile ? (
-                <View style={[styles.filePreview, { backgroundColor: colors.background }]}>
-                  <Ionicons name="document-attach" size={32} color={colors.primary} />
-                  <View style={styles.fileInfo}>
-                    <Text style={[styles.fileName, { fontFamily: Fonts.medium, color: colors.text }]} numberOfLines={1}>
-                      {selectedFile.name}
-                    </Text>
-                    <Text style={[styles.fileSize, { fontFamily: Fonts.regular, color: colors.icon }]}>
-                      {(selectedFile.size / 1024).toFixed(2)} KB
-                    </Text>
-                  </View>
-                  <TouchableOpacity onPress={() => setSelectedFile(null)}>
-                    <Ionicons name="close-circle" size={24} color={colors.icon} />
-                  </TouchableOpacity>
-                </View>
-              ) : (
+
+            {loadingSoal ? (
+              <ActivityIndicator color={colors.primary} style={{ marginVertical: 20 }} />
+            ) : soalTugas ? (
+              <View style={[styles.statusBanner, { backgroundColor: '#10B98120' }]}>
+                <Ionicons name="checkmark-circle" size={20} color="#10B981" />
+                <Text style={[styles.statusText, { fontFamily: Fonts.medium, color: '#10B981' }]}>
+                  Soal sudah diupload
+                </Text>
                 <TouchableOpacity
-                  style={[styles.uploadButton, { borderColor: colors.border }]}
-                  onPress={handlePickDocument}
+                  style={[styles.viewButton, { backgroundColor: colors.primary + '20', marginLeft: 'auto' }]}
+                  onPress={() => handleViewFile(soalTugas.tugas_url)}
                 >
-                  <Ionicons name="cloud-upload" size={32} color={colors.primary} />
-                  <Text style={[styles.uploadText, { fontFamily: Fonts.medium, color: colors.text }]}>
-                    Pilih File
-                  </Text>
-                  <Text style={[styles.uploadHint, { fontFamily: Fonts.regular, color: colors.icon }]}>
-                    PDF, DOC, DOCX, atau gambar
+                  <Ionicons name="eye" size={18} color={colors.primary} />
+                  <Text style={[styles.viewButtonText, { fontFamily: Fonts.medium, color: colors.primary }]}>
+                    Lihat Soal
                   </Text>
                 </TouchableOpacity>
+              </View>
+            ) : (
+              <>
+                <TextInput
+                  style={[styles.input, { 
+                    fontFamily: Fonts.regular, 
+                    color: colors.text, 
+                    borderColor: colors.border,
+                    backgroundColor: colors.background 
+                  }]}
+                  placeholder="Masukkan link Google Drive soal"
+                  placeholderTextColor={colors.icon}
+                  value={soalDriveLink}
+                  onChangeText={setSoalDriveLink}
+                  autoCapitalize="none"
+                />
+
+                <TouchableOpacity
+                  style={[
+                    styles.submitButton,
+                    { backgroundColor: colors.primary },
+                    (!soalDriveLink.trim() || uploadingSoal) && styles.disabledButton,
+                  ]}
+                  onPress={handleUploadSoal}
+                  disabled={!soalDriveLink.trim() || uploadingSoal}
+                >
+                  {uploadingSoal ? (
+                    <ActivityIndicator color="#FFF" />
+                  ) : (
+                    <>
+                      <Ionicons name="cloud-upload" size={20} color="#FFF" />
+                      <Text style={[styles.submitButtonText, { fontFamily: Fonts.semiBold }]}>
+                        Upload Soal
+                      </Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </>
+            )}
+
+            {/* Daftar Submission */}
+            <View style={[styles.divider, { backgroundColor: colors.border }]} />
+            <View style={styles.sectionHeader}>
+              <Ionicons name="document-text" size={24} color="#F59E0B" />
+              <Text style={[styles.sectionTitle, { fontFamily: Fonts.semiBold, color: colors.text }]}>
+                Daftar Submission ({tugasAwalList.length})
+              </Text>
+            </View>
+
+            {loadingAsistenData ? (
+              <ActivityIndicator color={colors.primary} style={{ marginVertical: 20 }} />
+            ) : tugasAwalList.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Ionicons name="document-outline" size={48} color={colors.icon} />
+                <Text style={[styles.emptyStateText, { fontFamily: Fonts.regular, color: colors.icon }]}>
+                  Belum ada submission
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.listContainer}>
+                {tugasAwalList.map((tugas, index) => (
+                  <View key={index} style={[styles.listItem, { borderBottomColor: colors.border }]}>
+                    <View style={styles.listItemHeader}>
+                      <View style={styles.listItemInfo}>
+                        <Text style={[styles.listItemName, { fontFamily: Fonts.semiBold, color: colors.text }]}>
+                          {tugas.nama}
+                        </Text>
+                        <Text style={[styles.listItemSubtext, { fontFamily: Fonts.regular, color: colors.icon }]}>
+                          NIM: {tugas.nim}
+                        </Text>
+                        {tugas.nilai !== null && tugas.nilai !== undefined ? (
+                          <View style={[styles.nilaiBadge, { backgroundColor: '#10B98120' }]}>
+                            <Text style={[styles.nilaiText, { fontFamily: Fonts.semiBold, color: '#10B981' }]}>
+                              Nilai: {tugas.nilai}
+                            </Text>
+                          </View>
+                        ) : (
+                          <Text style={[styles.listItemSubtext, { fontFamily: Fonts.regular, color: '#F59E0B' }]}>
+                            Belum dinilai
+                          </Text>
+                        )}
+                      </View>
+                      <View style={styles.actionButtons}>
+                        <TouchableOpacity
+                          style={[styles.viewButton, { backgroundColor: colors.primary + '20' }]}
+                          onPress={() => handleViewFile(tugas.submission_url)}
+                        >
+                          <Ionicons name="eye" size={18} color={colors.primary} />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[styles.viewButton, { backgroundColor: '#F59E0B20', marginLeft: 8 }]}
+                          onPress={() => {
+                            setSelectedSubmission(tugas);
+                            setNilaiInput(tugas.nilai?.toString() || '');
+                            setShowNilaiModal(true);
+                          }}
+                        >
+                          <Ionicons name="create" size={18} color="#F59E0B" />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                    {tugas.submittedAt && (
+                      <Text style={[styles.timestampText, { fontFamily: Fonts.regular, color: colors.icon }]}>
+                        {new Date(tugas.submittedAt).toLocaleString('id-ID')}
+                      </Text>
+                    )}
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        );
+      }
+
+      // Praktikan View
+      return (
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1 }}
+        >
+          <ScrollView 
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{ paddingBottom: 100 }}
+          >
+            <View style={[styles.contentCard, { backgroundColor: colors.card }]}>
+              {/* Soal Section */}
+              <View style={styles.sectionHeader}>
+                <Ionicons name="document-text" size={24} color={colors.primary} />
+                <Text style={[styles.sectionTitle, { fontFamily: Fonts.semiBold, color: colors.text }]}>
+                  Soal Tugas Awal
+                </Text>
+              </View>
+
+              {loadingSoal ? (
+                <ActivityIndicator color={colors.primary} style={{ marginVertical: 20 }} />
+              ) : soalTugas ? (
+                <TouchableOpacity
+                  style={[styles.soalCard, { backgroundColor: colors.background, borderColor: colors.border }]}
+                  onPress={() => handleViewFile(soalTugas.tugas_url)}
+                >
+                  <Ionicons name="document" size={32} color={colors.primary} />
+                  <View style={{ flex: 1, marginLeft: 12 }}>
+                    <Text style={[styles.soalTitle, { fontFamily: Fonts.semiBold, color: colors.text }]}>
+                      Soal Tersedia
+                    </Text>
+                    <Text style={[styles.soalSubtext, { fontFamily: Fonts.regular, color: colors.icon }]}>
+                      Tap untuk melihat soal
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={24} color={colors.icon} />
+                </TouchableOpacity>
+              ) : (
+                <View style={[styles.statusBanner, { backgroundColor: '#F59E0B20' }]}>
+                  <Ionicons name="alert-circle" size={20} color="#F59E0B" />
+                  <Text style={[styles.statusText, { fontFamily: Fonts.medium, color: '#F59E0B' }]}>
+                    Soal belum tersedia
+                  </Text>
+                </View>
               )}
 
-              <TouchableOpacity
-                style={[
-                  styles.submitButton,
-                  { backgroundColor: colors.primary },
-                  (!selectedFile || uploadingTugas) && styles.disabledButton,
-                ]}
-                onPress={handleUploadTugas}
-                disabled={!selectedFile || uploadingTugas}
-              >
-                {uploadingTugas ? (
-                  <ActivityIndicator color="#FFF" />
-                ) : (
-                  <>
-                    <Ionicons name="send" size={20} color="#FFF" />
-                    <Text style={[styles.submitButtonText, { fontFamily: Fonts.semiBold }]}>
-                      Submit Tugas Awal
-                    </Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            </>
-          )}
-        </View>
+              {/* Submission Section */}
+              <View style={[styles.divider, { backgroundColor: colors.border }]} />
+              <View style={styles.sectionHeader}>
+                <Ionicons name="cloud-upload" size={24} color={colors.primary} />
+                <Text style={[styles.sectionTitle, { fontFamily: Fonts.semiBold, color: colors.text }]}>
+                  Submit Jawaban
+                </Text>
+              </View>
 
-        {/* Presensi Section */}
-        <View style={[styles.sectionCard, { backgroundColor: colors.card }]}>
+              {tugasStatus?.submitted ? (
+                <View>
+                  <View style={[styles.statusBanner, { backgroundColor: '#10B98120' }]}>
+                    <Ionicons name="checkmark-circle" size={20} color="#10B981" />
+                    <Text style={[styles.statusText, { fontFamily: Fonts.medium, color: '#10B981' }]}>
+                      Tugas sudah disubmit
+                    </Text>
+                  </View>
+                  
+                  {tugasStatus.nilai !== null && tugasStatus.nilai !== undefined ? (
+                    <View style={[styles.nilaiCard, { backgroundColor: '#10B98110', borderColor: '#10B981' }]}>
+                      <Text style={[styles.nilaiLabel, { fontFamily: Fonts.regular, color: colors.text }]}>
+                        Nilai Anda:
+                      </Text>
+                      <Text style={[styles.nilaiValue, { fontFamily: Fonts.bold, color: '#10B981' }]}>
+                        {tugasStatus.nilai}
+                      </Text>
+                    </View>
+                  ) : (
+                    <View style={[styles.statusBanner, { backgroundColor: '#F59E0B20' }]}>
+                      <Ionicons name="time" size={20} color="#F59E0B" />
+                      <Text style={[styles.statusText, { fontFamily: Fonts.medium, color: '#F59E0B' }]}>
+                        Menunggu penilaian
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              ) : (
+                <>
+                  <View style={[styles.infoBanner, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                    <Ionicons name="information-circle" size={20} color={colors.primary} />
+                    <Text style={[styles.infoText, { fontFamily: Fonts.regular, color: colors.text }]}>
+                      Upload jawaban ke Google Drive terlebih dahulu, lalu input link di bawah
+                    </Text>
+                  </View>
+
+                  <TextInput
+                    style={[styles.input, { 
+                      fontFamily: Fonts.regular, 
+                      color: colors.text, 
+                      borderColor: colors.border,
+                      backgroundColor: colors.background,
+                      minHeight: 80,
+                    }]}
+                    placeholder="Paste link Google Drive jawaban"
+                    placeholderTextColor={colors.icon}
+                    value={driveLink}
+                    onChangeText={setDriveLink}
+                    autoCapitalize="none"
+                    multiline
+                    numberOfLines={3}
+                    textAlignVertical="top"
+                  />
+
+                  <TouchableOpacity
+                    style={[
+                      styles.submitButton,
+                      { backgroundColor: colors.primary },
+                      (!driveLink.trim() || uploadingTugas) && styles.disabledButton,
+                    ]}
+                    onPress={handleUploadTugas}
+                    disabled={!driveLink.trim() || uploadingTugas}
+                  >
+                    {uploadingTugas ? (
+                      <ActivityIndicator color="#FFF" />
+                    ) : (
+                      <>
+                        <Ionicons name="send" size={20} color="#FFF" />
+                        <Text style={[styles.submitButtonText, { fontFamily: Fonts.semiBold }]}>
+                          Submit Jawaban
+                        </Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                </>
+              )}
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      );
+    }
+
+    // Render Presensi Tab
+    if (activeTab === 'presensi') {
+      return (
+        <View style={[styles.contentCard, { backgroundColor: colors.card }]}>
           <View style={styles.sectionHeader}>
             <Ionicons name="checkmark-done" size={24} color={colors.primary} />
             <Text style={[styles.sectionTitle, { fontFamily: Fonts.semiBold, color: colors.text }]}>
-              Presensi
+              Submit Presensi
             </Text>
           </View>
 
@@ -511,65 +855,11 @@ export default function ModulDetailScreen() {
               </>
             )}
           </TouchableOpacity>
-        </View>
 
-        {/* Asisten Dashboard Section */}
-        {user?.role === 'asisten' && (
-          <>
-            {/* Daftar Tugas Awal */}
-            <View style={[styles.sectionCard, { backgroundColor: colors.card }]}>
-              <View style={styles.sectionHeader}>
-                <Ionicons name="document-text" size={24} color="#F59E0B" />
-                <Text style={[styles.sectionTitle, { fontFamily: Fonts.semiBold, color: colors.text }]}>
-                  Daftar Tugas Awal ({tugasAwalList.length})
-                </Text>
-              </View>
-
-              {loadingAsistenData ? (
-                <ActivityIndicator color={colors.primary} style={{ marginVertical: 20 }} />
-              ) : tugasAwalList.length === 0 ? (
-                <View style={styles.emptyState}>
-                  <Ionicons name="document-outline" size={48} color={colors.icon} />
-                  <Text style={[styles.emptyStateText, { fontFamily: Fonts.regular, color: colors.icon }]}>
-                    Belum ada tugas awal yang disubmit
-                  </Text>
-                </View>
-              ) : (
-                <View style={styles.listContainer}>
-                  {tugasAwalList.map((tugas, index) => (
-                    <View key={index} style={[styles.listItem, { borderBottomColor: colors.border }]}>
-                      <View style={styles.listItemHeader}>
-                        <View style={styles.listItemInfo}>
-                          <Text style={[styles.listItemName, { fontFamily: Fonts.semiBold, color: colors.text }]}>
-                            {tugas.nama}
-                          </Text>
-                          <Text style={[styles.listItemSubtext, { fontFamily: Fonts.regular, color: colors.icon }]}>
-                            NIM: {tugas.nim}
-                          </Text>
-                        </View>
-                        <TouchableOpacity
-                          style={[styles.viewButton, { backgroundColor: colors.primary + '20' }]}
-                          onPress={() => Alert.alert('File URL', tugas.submission_url)}
-                        >
-                          <Ionicons name="eye" size={18} color={colors.primary} />
-                          <Text style={[styles.viewButtonText, { fontFamily: Fonts.medium, color: colors.primary }]}>
-                            Lihat
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                      {tugas.submittedAt && (
-                        <Text style={[styles.timestampText, { fontFamily: Fonts.regular, color: colors.icon }]}>
-                          Submitted: {new Date(tugas.submittedAt).toLocaleString('id-ID')}
-                        </Text>
-                      )}
-                    </View>
-                  ))}
-                </View>
-              )}
-            </View>
-
-            {/* Daftar Presensi */}
-            <View style={[styles.sectionCard, { backgroundColor: colors.card }]}>
+          {/* Asisten Dashboard - Daftar Presensi */}
+          {user?.role === 'asisten' && (
+            <View style={styles.asistenSection}>
+              <View style={[styles.divider, { backgroundColor: colors.border }]} />
               <View style={styles.sectionHeader}>
                 <Ionicons name="people" size={24} color="#10B981" />
                 <Text style={[styles.sectionTitle, { fontFamily: Fonts.semiBold, color: colors.text }]}>
@@ -616,11 +906,179 @@ export default function ModulDetailScreen() {
                 </View>
               )}
             </View>
-          </>
-        )}
+          )}
+        </View>
+      );
+    }
+
+    return null;
+  };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={[styles.header, { backgroundColor: colors.primary }]}>
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color="#FFF" />
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, { fontFamily: Fonts.bold }]}>Detail Modul</Text>
+          <View style={{ width: 40 }} />
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.loadingText, { fontFamily: Fonts.regular, color: colors.icon }]}>
+            Memuat detail modul...
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  if (!modul) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={[styles.header, { backgroundColor: colors.primary }]}>
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color="#FFF" />
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, { fontFamily: Fonts.bold }]}>Detail Modul</Text>
+          <View style={{ width: 40 }} />
+        </View>
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle" size={64} color={colors.icon} />
+          <Text style={[styles.errorText, { fontFamily: Fonts.regular, color: colors.icon }]}>
+            Modul tidak ditemukan
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Header */}
+      <View style={[styles.header, { backgroundColor: colors.primary }]}>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={24} color="#FFF" />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { fontFamily: Fonts.bold }]} numberOfLines={1}>
+          {modul.judul}
+        </Text>
+        <View style={{ width: 40 }} />
+      </View>
+
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Tabs */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.tabsContainer}
+          contentContainerStyle={styles.tabsContent}
+        >
+          {[
+            { key: 'dasarTeori' as TabType, label: 'Dasar Teori', icon: 'book' },
+            { key: 'alatBahan' as TabType, label: 'Alat & Bahan', icon: 'construct' },
+            { key: 'prosedur' as TabType, label: 'Prosedur', icon: 'list' },
+            { key: 'tugasAwal' as TabType, label: 'Tugas Awal', icon: 'document' },
+            { key: 'presensi' as TabType, label: 'Presensi', icon: 'checkmark-done' },
+          ].map((tab) => (
+            <TouchableOpacity
+              key={tab.key}
+              style={[
+                styles.tab,
+                { backgroundColor: activeTab === tab.key ? colors.primary : colors.card },
+              ]}
+              onPress={() => setActiveTab(tab.key)}
+            >
+              <Ionicons
+                name={tab.icon as any}
+                size={18}
+                color={activeTab === tab.key ? '#FFF' : colors.icon}
+              />
+              <Text
+                style={[
+                  styles.tabText,
+                  {
+                    fontFamily: activeTab === tab.key ? Fonts.semiBold : Fonts.regular,
+                    color: activeTab === tab.key ? '#FFF' : colors.text,
+                  },
+                ]}
+              >
+                {tab.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* Tab Content */}
+        {renderTabContent()}
 
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      {/* Modal Beri Nilai */}
+      <Modal
+        visible={showNilaiModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowNilaiModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { fontFamily: Fonts.bold, color: colors.text }]}>
+                Beri Nilai
+              </Text>
+              <TouchableOpacity onPress={() => setShowNilaiModal(false)}>
+                <Ionicons name="close" size={24} color={colors.icon} />
+              </TouchableOpacity>
+            </View>
+
+            {selectedSubmission && (
+              <View style={styles.modalBody}>
+                <Text style={[styles.modalLabel, { fontFamily: Fonts.medium, color: colors.text }]}>
+                  {selectedSubmission.nama}
+                </Text>
+                <Text style={[styles.modalSubtext, { fontFamily: Fonts.regular, color: colors.icon }]}>
+                  NIM: {selectedSubmission.nim}
+                </Text>
+
+                <TextInput
+                  style={[styles.modalInput, { 
+                    fontFamily: Fonts.regular, 
+                    color: colors.text, 
+                    borderColor: colors.border,
+                    backgroundColor: colors.background 
+                  }]}
+                  placeholder="Masukkan nilai (0-100)"
+                  placeholderTextColor={colors.icon}
+                  value={nilaiInput}
+                  onChangeText={setNilaiInput}
+                  keyboardType="number-pad"
+                />
+
+                <TouchableOpacity
+                  style={[
+                    styles.modalButton,
+                    { backgroundColor: colors.primary },
+                    (!nilaiInput.trim() || givingNilai) && styles.disabledButton,
+                  ]}
+                  onPress={handleGiveNilai}
+                  disabled={!nilaiInput.trim() || givingNilai}
+                >
+                  {givingNilai ? (
+                    <ActivityIndicator color="#FFF" />
+                  ) : (
+                    <Text style={[styles.modalButtonText, { fontFamily: Fonts.semiBold }]}>
+                      Simpan Nilai
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -875,5 +1333,121 @@ const styles = StyleSheet.create({
   },
   presensiInfo: {
     flex: 1,
+  },
+  divider: {
+    height: 1,
+    marginVertical: 24,
+  },
+  asistenSection: {
+    marginTop: 16,
+  },
+  // New styles for Tugas Awal redesign
+  soalCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 16,
+  },
+  soalTitle: {
+    fontSize: isSmallScreen ? 15 : 16,
+    marginBottom: 4,
+  },
+  soalSubtext: {
+    fontSize: isSmallScreen ? 12 : 13,
+  },
+  infoBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 16,
+  },
+  infoText: {
+    flex: 1,
+    fontSize: isSmallScreen ? 12 : 13,
+    lineHeight: 18,
+  },
+  nilaiCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    marginTop: 12,
+  },
+  nilaiLabel: {
+    fontSize: isSmallScreen ? 14 : 15,
+  },
+  nilaiValue: {
+    fontSize: isSmallScreen ? 24 : 28,
+  },
+  nilaiBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    marginTop: 4,
+    alignSelf: 'flex-start',
+  },
+  nilaiText: {
+    fontSize: isSmallScreen ? 12 : 13,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 400,
+    borderRadius: 16,
+    padding: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: isSmallScreen ? 18 : 20,
+  },
+  modalBody: {
+    gap: 16,
+  },
+  modalLabel: {
+    fontSize: isSmallScreen ? 15 : 16,
+  },
+  modalSubtext: {
+    fontSize: isSmallScreen ? 12 : 13,
+    marginTop: -8,
+  },
+  modalInput: {
+    paddingHorizontal: 16,
+    paddingVertical: isSmallScreen ? 12 : 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    fontSize: isSmallScreen ? 14 : 15,
+  },
+  modalButton: {
+    paddingVertical: isSmallScreen ? 14 : 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalButtonText: {
+    color: '#FFF',
+    fontSize: isSmallScreen ? 14 : 15,
   },
 });
