@@ -785,17 +785,68 @@ export default function ModulDetailScreen() {
 
     // Render Presensi Tab
     if (activeTab === 'presensi') {
-      return (
-        <View style={[styles.contentCard, { backgroundColor: colors.card }]}>
-          {/* Submit Presensi Form - Only for non-asisten */}
-          {user?.role !== 'asisten' && (
-            <>
-              <View style={styles.sectionHeader}>
-                <Ionicons name="checkmark-done" size={24} color={colors.primary} />
-                <Text style={[styles.sectionTitle, { fontFamily: Fonts.semiBold, color: colors.text }]}>
-                  Submit Presensi
+      // Asisten: hanya tampilkan daftar presensi (tidak ada form input)
+      if (user?.role === 'asisten') {
+        return (
+          <View style={[styles.contentCard, { backgroundColor: colors.card }]}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="people" size={24} color="#10B981" />
+              <Text style={[styles.sectionTitle, { fontFamily: Fonts.semiBold, color: colors.text }]}>
+                Daftar Presensi ({presensiList.length})
+              </Text>
+            </View>
+
+            {loadingAsistenData ? (
+              <ActivityIndicator color={colors.primary} style={{ marginVertical: 20 }} />
+            ) : presensiList.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Ionicons name="people-outline" size={48} color={colors.icon} />
+                <Text style={[styles.emptyStateText, { fontFamily: Fonts.regular, color: colors.icon }]}>
+                  Belum ada yang presensi
                 </Text>
               </View>
+            ) : (
+              <View style={styles.listContainer}>
+                {presensiList.map((presensi, index) => (
+                  <View key={index} style={[styles.listItem, { borderBottomColor: colors.border }]}>
+                    <View style={styles.presensiRow}>
+                      <View style={[styles.kelompokBadge, { backgroundColor: colors.primary }]}>
+                        <Text style={[styles.kelompokText, { fontFamily: Fonts.bold }]}>
+                          {presensi.kelompok}
+                        </Text>
+                      </View>
+                      <View style={styles.presensiInfo}>
+                        <Text style={[styles.listItemName, { fontFamily: Fonts.semiBold, color: colors.text }]}>
+                          {presensi.nama}
+                        </Text>
+                        <Text style={[styles.listItemSubtext, { fontFamily: Fonts.regular, color: colors.icon }]}>
+                          NIM: {presensi.nim}
+                        </Text>
+                      </View>
+                      <Ionicons name="checkmark-circle" size={24} color="#10B981" />
+                    </View>
+                    {presensi.createdAt && (
+                      <Text style={[styles.timestampText, { fontFamily: Fonts.regular, color: colors.icon }]}>
+                        {new Date(presensi.createdAt).toLocaleString('id-ID')}
+                      </Text>
+                    )}
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        );
+      }
+
+      // Praktikan: tampilkan form presensi
+      return (
+        <View style={[styles.contentCard, { backgroundColor: colors.card }]}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="checkmark-done" size={24} color={colors.primary} />
+            <Text style={[styles.sectionTitle, { fontFamily: Fonts.semiBold, color: colors.text }]}>
+              Submit Presensi
+            </Text>
+          </View>
 
               <View style={styles.formGroup}>
                 <Text style={[styles.label, { fontFamily: Fonts.medium, color: colors.text }]}>
@@ -838,79 +889,26 @@ export default function ModulDetailScreen() {
                 />
               </View>
 
-              <TouchableOpacity
-                style={[
-                  styles.submitButton,
-                  { backgroundColor: colors.primary },
-                  (!nim || !nama || !kelompok || submittingPresensi) && styles.disabledButton,
-                ]}
-                onPress={handleSubmitPresensi}
-                disabled={!nim || !nama || !kelompok || submittingPresensi}
-              >
-                {submittingPresensi ? (
-                  <ActivityIndicator color="#FFF" />
-                ) : (
-                  <>
-                    <Ionicons name="checkmark-circle" size={20} color="#FFF" />
-                    <Text style={[styles.submitButtonText, { fontFamily: Fonts.semiBold }]}>
-                      Submit Presensi
-                    </Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            </>
-          )}
-
-          {/* Asisten Dashboard - Daftar Presensi */}
-          {user?.role === 'asisten' && (
-            <View>
-              <View style={styles.sectionHeader}>
-                <Ionicons name="people" size={24} color="#10B981" />
-                <Text style={[styles.sectionTitle, { fontFamily: Fonts.semiBold, color: colors.text }]}>
-                  Daftar Presensi ({presensiList.length})
+          <TouchableOpacity
+            style={[
+              styles.submitButton,
+              { backgroundColor: colors.primary },
+              (!nim || !nama || !kelompok || submittingPresensi) && styles.disabledButton,
+            ]}
+            onPress={handleSubmitPresensi}
+            disabled={!nim || !nama || !kelompok || submittingPresensi}
+          >
+            {submittingPresensi ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <>
+                <Ionicons name="checkmark-circle" size={20} color="#FFF" />
+                <Text style={[styles.submitButtonText, { fontFamily: Fonts.semiBold }]}>
+                  Submit Presensi
                 </Text>
-              </View>
-
-              {loadingAsistenData ? (
-                <ActivityIndicator color={colors.primary} style={{ marginVertical: 20 }} />
-              ) : presensiList.length === 0 ? (
-                <View style={styles.emptyState}>
-                  <Ionicons name="people-outline" size={48} color={colors.icon} />
-                  <Text style={[styles.emptyStateText, { fontFamily: Fonts.regular, color: colors.icon }]}>
-                    Belum ada yang presensi
-                  </Text>
-                </View>
-              ) : (
-                <View style={styles.listContainer}>
-                  {presensiList.map((presensi, index) => (
-                    <View key={index} style={[styles.listItem, { borderBottomColor: colors.border }]}>
-                      <View style={styles.presensiRow}>
-                        <View style={[styles.kelompokBadge, { backgroundColor: colors.primary }]}>
-                          <Text style={[styles.kelompokText, { fontFamily: Fonts.bold }]}>
-                            {presensi.kelompok}
-                          </Text>
-                        </View>
-                        <View style={styles.presensiInfo}>
-                          <Text style={[styles.listItemName, { fontFamily: Fonts.semiBold, color: colors.text }]}>
-                            {presensi.nama}
-                          </Text>
-                          <Text style={[styles.listItemSubtext, { fontFamily: Fonts.regular, color: colors.icon }]}>
-                            NIM: {presensi.nim}
-                          </Text>
-                        </View>
-                        <Ionicons name="checkmark-circle" size={24} color="#10B981" />
-                      </View>
-                      {presensi.createdAt && (
-                        <Text style={[styles.timestampText, { fontFamily: Fonts.regular, color: colors.icon }]}>
-                          {new Date(presensi.createdAt).toLocaleString('id-ID')}
-                        </Text>
-                      )}
-                    </View>
-                  ))}
-                </View>
-              )}
-            </View>
-          )}
+              </>
+            )}
+          </TouchableOpacity>
         </View>
       );
     }
