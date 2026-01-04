@@ -172,7 +172,7 @@ export default function HomeScreen() {
           <TouchableOpacity 
             style={[styles.actionCard, { backgroundColor: '#8B5CF6' }]}
             activeOpacity={0.7}
-            onPress={() => router.push('/aturan-lab')}
+            onPress={() => router.push('/aturan/aturan-praktikum')}
           >
             <Ionicons name="document-text-outline" size={isSmallScreen ? 28 : 32} color="#FFF" />
             <Text style={[styles.actionTitle, { fontFamily: Fonts.semiBold }]}>

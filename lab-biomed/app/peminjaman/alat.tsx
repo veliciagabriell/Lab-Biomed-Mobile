@@ -579,6 +579,47 @@ export default function PeminjamanAlatScreen() {
           </>
         ) : (
           // Riwayat Tab
+
+          <View>
+            <View style={styles.statsRow}>
+              <View style={[styles.statCard, { backgroundColor: colors.card }]}>
+                <View style={[styles.statIconCircle, { backgroundColor: '#F59E0B20' }]}>
+                  <Ionicons name="time" size={24} color="#F59E0B" />
+                </View>
+                <Text style={[styles.statCardNumber, { fontFamily: Fonts.bold, color: colors.text }]}>
+                  {bookingHistory.filter(b => b.status === 'pending').length}
+                </Text>
+                <Text style={[styles.statCardLabel, { fontFamily: Fonts.regular, color: colors.icon }]}>
+                  Menunggu
+                </Text>
+              </View>
+
+              <View style={[styles.statCard, { backgroundColor: colors.card }]}>
+                <View style={[styles.statIconCircle, { backgroundColor: '#10B98120' }]}>
+                  <Ionicons name="checkmark-circle" size={24} color="#10B981" />
+                </View>
+                <Text style={[styles.statCardNumber, { fontFamily: Fonts.bold, color: colors.text }]}>
+                  {bookingHistory.filter(b => b.status === 'approved').length}
+                </Text>
+                <Text style={[styles.statCardLabel, { fontFamily: Fonts.regular, color: colors.icon }]}>
+                  Disetujui
+                </Text>
+              </View>
+
+              <View style={[styles.statCard, { backgroundColor: colors.card }]}>
+                <View style={[styles.statIconCircle, { backgroundColor: '#EF444420' }]}>
+                  <Ionicons name="close-circle" size={24} color="#EF4444" />
+                </View>
+                <Text style={[styles.statCardNumber, { fontFamily: Fonts.bold, color: colors.text }]}>
+                  {bookingHistory.filter(b => b.status === 'rejected').length}
+                </Text>
+                <Text style={[styles.statCardLabel, { fontFamily: Fonts.regular, color: colors.icon }]}>
+                  Ditolak
+                </Text>
+              </View>
+            </View>
+          
+
           <View style={[styles.historyCard, { backgroundColor: colors.card }]}>
             <View style={styles.historyHeader}>
               <Text style={[styles.sectionTitle, { fontFamily: Fonts.semiBold, color: colors.text }]}>
@@ -672,6 +713,7 @@ export default function PeminjamanAlatScreen() {
                 ))}
               </View>
             )}
+          </View>
           </View>
         )}
       </ScrollView>
@@ -1053,5 +1095,62 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: isSmallScreen ? 13 : 14,
     lineHeight: 20,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginHorizontal: isSmallScreen ? 16 : 20,
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  statCard: {
+    flex: 1,
+    padding: isSmallScreen ? 12 : 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    gap: 8,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
+  statIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  statCardNumber: {
+    fontSize: isSmallScreen ? 22 : 24,
+    marginTop: 4,
+  },
+  statCardLabel: {
+    fontSize: isSmallScreen ? 11 : 12,
+    textAlign: 'center',
+  },
+  historyCard: {
+    marginHorizontal: isSmallScreen ? 16 : 20,
+    padding: isSmallScreen ? 16 : 20,
+    borderRadius: 16,
+    marginBottom: 20,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
 });

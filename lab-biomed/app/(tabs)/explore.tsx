@@ -62,7 +62,7 @@ export default function ExploreScreen() {
       showsVerticalScrollIndicator={false}
     >
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: '#8B5CF6' }]}>
+      <View style={[styles.header, { backgroundColor: '#FF4E05' }]}>
         <Text style={[styles.headerTitle, { fontFamily: Fonts.bold }]}>
           More
         </Text>
@@ -106,6 +106,16 @@ export default function ExploreScreen() {
               key={item.id}
               style={[styles.menuCard, { backgroundColor: colors.card }]}
               activeOpacity={0.7}
+              onPress={() => {
+                if (item.title === 'Aturan Lab') {
+                  router.push('/aturan/aturan-praktikum');
+                }
+                else if (item.title === 'Praktikum') {
+                  router.push('/(tabs)/praktikum');
+                } else {
+                  Alert.alert('Coming Soon', `${item.title} feature will be available soon`);
+                }
+              }}
             >
               <View style={[styles.menuIcon, { backgroundColor: item.color + '20' }]}>
                 <Ionicons name={item.icon as any} size={28} color={item.color} />
