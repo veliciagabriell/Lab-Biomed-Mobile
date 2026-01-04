@@ -7,13 +7,16 @@ import { JwtStrategy } from '././strategies/jwt.strategy';
 import { FirebaseService } from '../../firebase/firebase.service';
 
 @Module({
-    imports: [PassportModule, JwtModule.register({
-        secret: 'LAB_BIOMED',
-        signOptions: { expiresIn: '1h' },
+    imports: [
+        PassportModule, 
+        JwtModule.register({
+            secret: 'LAB_BIOMED',
+            signOptions: { expiresIn: '24h' }, // Increased to 24h
         }),
     ],
     controllers: [AuthController],
     providers: [AuthService, JwtStrategy, FirebaseService],
+    exports: [JwtModule, JwtStrategy, PassportModule], // Export untuk digunakan di module lain
 })
 
 export class AuthModule {}

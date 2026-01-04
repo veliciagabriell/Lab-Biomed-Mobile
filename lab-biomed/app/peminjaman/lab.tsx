@@ -71,9 +71,16 @@ export default function PeminjamanLabScreen() {
   const loadBookedDates = async () => {
     try {
       const token = await AsyncStorage.getItem('userToken');
+      
+      if (!token) {
+        console.log('No token found, skipping booked dates load');
+        return;
+      }
+      
       const response = await fetch(`${API_URL}${API_ENDPOINTS.PEMINJAMAN}`, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
       });
 
@@ -101,11 +108,19 @@ export default function PeminjamanLabScreen() {
     setLoadingHistory(true);
     try {
       const token = await AsyncStorage.getItem('userToken');
-      console.log('Loading history with token:', token ? 'Token exists' : 'No token');
+      
+      if (!token) {
+        console.log('No token found, skipping history load');
+        setBookingHistory([]);
+        return;
+      }
+      
+      console.log('Loading history with token');
       
       const response = await fetch(`${API_URL}${API_ENDPOINTS.PEMINJAMAN}`, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
       });
 
@@ -122,6 +137,25 @@ export default function PeminjamanLabScreen() {
       } else {
         const errorData = await response.json();
         console.error('History load error:', errorData);
+        
+        // If unauthorized, token might be expired
+        if (response.status === 401) {
+          Alert.alert(
+            'Sesi Berakhir',
+            'Sesi login Anda telah berakhir. Silakan login kembali.',
+            [
+              { 
+                text: 'Login', 
+                onPress: () => {
+                  // Clear invalid token
+                  AsyncStorage.removeItem('userToken');
+                  AsyncStorage.removeItem('userData');
+                  router.push('/auth/login');
+                }
+              }
+            ]
+          );
+        }
       }
     } catch (error) {
       console.error('Error loading history:', error);
@@ -176,11 +210,26 @@ export default function PeminjamanLabScreen() {
     setLoading(true);
     try {
       const token = await AsyncStorage.getItem('userToken');
+      
+      if (!token) {
+        Alert.alert(
+          'Login Diperlukan',
+          'Silakan login terlebih dahulu',
+          [
+            { text: 'Batal', style: 'cancel' },
+            { text: 'Login', onPress: () => router.push('/auth/login') }
+          ]
+        );
+        return;
+      }
+      
+      console.log('Submitting peminjaman...');
+      
       const response = await fetch(`${API_URL}${API_ENDPOINTS.PEMINJAMAN}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
           userName: namaLengkap,
@@ -194,8 +243,27 @@ export default function PeminjamanLabScreen() {
       });
 
       const data = await response.json();
+      console.log('Submit response:', response.status, data);
 
       if (!response.ok) {
+        // Handle 401 Unauthorized
+        if (response.status === 401) {
+          Alert.alert(
+            'Sesi Berakhir',
+            'Sesi login Anda telah berakhir. Silakan login kembali.',
+            [
+              { 
+                text: 'Login', 
+                onPress: () => {
+                  AsyncStorage.removeItem('userToken');
+                  AsyncStorage.removeItem('userData');
+                  router.push('/auth/login');
+                }
+              }
+            ]
+          );
+          return;
+        }
         throw new Error(data.message || 'Gagal membuat peminjaman');
       }
 

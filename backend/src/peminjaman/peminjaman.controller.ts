@@ -4,11 +4,12 @@ import { CreatePeminjamanDto } from './dto/create-peminjaman.dto';
 import { UpdatePeminjamanStatusDto } from './dto/update-peminjaman.dto';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody, ApiResponse } from '@nestjs/swagger';
 import { Role } from '../auth/role.enum';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @ApiTags('Peminjaman Lab')
 @Controller('api/peminjaman')
 @ApiBearerAuth('access-token')
-
+@UseGuards(JwtAuthGuard)
 export class PeminjamanController {
     constructor(private readonly peminjamanService: PeminjamanService) {}
 
