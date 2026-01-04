@@ -787,79 +787,83 @@ export default function ModulDetailScreen() {
     if (activeTab === 'presensi') {
       return (
         <View style={[styles.contentCard, { backgroundColor: colors.card }]}>
-          <View style={styles.sectionHeader}>
-            <Ionicons name="checkmark-done" size={24} color={colors.primary} />
-            <Text style={[styles.sectionTitle, { fontFamily: Fonts.semiBold, color: colors.text }]}>
-              Submit Presensi
-            </Text>
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={[styles.label, { fontFamily: Fonts.medium, color: colors.text }]}>
-              NIM
-            </Text>
-            <TextInput
-              style={[styles.input, { fontFamily: Fonts.regular, color: colors.text, backgroundColor: colors.background, borderColor: colors.border }]}
-              value={nim}
-              onChangeText={setNim}
-              placeholder="Masukkan NIM"
-              placeholderTextColor={colors.icon}
-              keyboardType="numeric"
-            />
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={[styles.label, { fontFamily: Fonts.medium, color: colors.text }]}>
-              Nama Lengkap
-            </Text>
-            <TextInput
-              style={[styles.input, { fontFamily: Fonts.regular, color: colors.text, backgroundColor: colors.background, borderColor: colors.border }]}
-              value={nama}
-              onChangeText={setNama}
-              placeholder="Masukkan nama lengkap"
-              placeholderTextColor={colors.icon}
-            />
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={[styles.label, { fontFamily: Fonts.medium, color: colors.text }]}>
-              Kelompok
-            </Text>
-            <TextInput
-              style={[styles.input, { fontFamily: Fonts.regular, color: colors.text, backgroundColor: colors.background, borderColor: colors.border }]}
-              value={kelompok}
-              onChangeText={setKelompok}
-              placeholder="Masukkan nomor kelompok"
-              placeholderTextColor={colors.icon}
-              keyboardType="numeric"
-            />
-          </View>
-
-          <TouchableOpacity
-            style={[
-              styles.submitButton,
-              { backgroundColor: colors.primary },
-              (!nim || !nama || !kelompok || submittingPresensi) && styles.disabledButton,
-            ]}
-            onPress={handleSubmitPresensi}
-            disabled={!nim || !nama || !kelompok || submittingPresensi}
-          >
-            {submittingPresensi ? (
-              <ActivityIndicator color="#FFF" />
-            ) : (
-              <>
-                <Ionicons name="checkmark-circle" size={20} color="#FFF" />
-                <Text style={[styles.submitButtonText, { fontFamily: Fonts.semiBold }]}>
+          {/* Submit Presensi Form - Only for non-asisten */}
+          {user?.role !== 'asisten' && (
+            <>
+              <View style={styles.sectionHeader}>
+                <Ionicons name="checkmark-done" size={24} color={colors.primary} />
+                <Text style={[styles.sectionTitle, { fontFamily: Fonts.semiBold, color: colors.text }]}>
                   Submit Presensi
                 </Text>
-              </>
-            )}
-          </TouchableOpacity>
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={[styles.label, { fontFamily: Fonts.medium, color: colors.text }]}>
+                  NIM
+                </Text>
+                <TextInput
+                  style={[styles.input, { fontFamily: Fonts.regular, color: colors.text, backgroundColor: colors.background, borderColor: colors.border }]}
+                  value={nim}
+                  onChangeText={setNim}
+                  placeholder="Masukkan NIM"
+                  placeholderTextColor={colors.icon}
+                  keyboardType="numeric"
+                />
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={[styles.label, { fontFamily: Fonts.medium, color: colors.text }]}>
+                  Nama Lengkap
+                </Text>
+                <TextInput
+                  style={[styles.input, { fontFamily: Fonts.regular, color: colors.text, backgroundColor: colors.background, borderColor: colors.border }]}
+                  value={nama}
+                  onChangeText={setNama}
+                  placeholder="Masukkan nama lengkap"
+                  placeholderTextColor={colors.icon}
+                />
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={[styles.label, { fontFamily: Fonts.medium, color: colors.text }]}>
+                  Kelompok
+                </Text>
+                <TextInput
+                  style={[styles.input, { fontFamily: Fonts.regular, color: colors.text, backgroundColor: colors.background, borderColor: colors.border }]}
+                  value={kelompok}
+                  onChangeText={setKelompok}
+                  placeholder="Masukkan nomor kelompok"
+                  placeholderTextColor={colors.icon}
+                  keyboardType="numeric"
+                />
+              </View>
+
+              <TouchableOpacity
+                style={[
+                  styles.submitButton,
+                  { backgroundColor: colors.primary },
+                  (!nim || !nama || !kelompok || submittingPresensi) && styles.disabledButton,
+                ]}
+                onPress={handleSubmitPresensi}
+                disabled={!nim || !nama || !kelompok || submittingPresensi}
+              >
+                {submittingPresensi ? (
+                  <ActivityIndicator color="#FFF" />
+                ) : (
+                  <>
+                    <Ionicons name="checkmark-circle" size={20} color="#FFF" />
+                    <Text style={[styles.submitButtonText, { fontFamily: Fonts.semiBold }]}>
+                      Submit Presensi
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </>
+          )}
 
           {/* Asisten Dashboard - Daftar Presensi */}
           {user?.role === 'asisten' && (
-            <View style={styles.asistenSection}>
-              <View style={[styles.divider, { backgroundColor: colors.border }]} />
+            <View>
               <View style={styles.sectionHeader}>
                 <Ionicons name="people" size={24} color="#10B981" />
                 <Text style={[styles.sectionTitle, { fontFamily: Fonts.semiBold, color: colors.text }]}>

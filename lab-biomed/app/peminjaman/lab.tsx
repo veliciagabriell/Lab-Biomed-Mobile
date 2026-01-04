@@ -9,6 +9,8 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
+  Modal,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { useState, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
@@ -46,6 +48,11 @@ export default function PeminjamanLabScreen() {
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [activeTab, setActiveTab] = useState<'peminjaman' | 'riwayat'>('peminjaman');
   const [processingId, setProcessingId] = useState<string | null>(null);
+  
+  // Rejection modal state
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+  const [rejectingBookingId, setRejectingBookingId] = useState<string | null>(null);
 
   // Form state
   const [namaLengkap, setNamaLengkap] = useState('');
@@ -370,55 +377,54 @@ export default function PeminjamanLabScreen() {
     );
   };
 
-  const handleReject = async (bookingId: string) => {
-    Alert.prompt(
-      'Tolak Peminjaman',
-      'Masukkan alasan penolakan:',
-      [
-        { text: 'Batal', style: 'cancel' },
-        {
-          text: 'Tolak',
-          style: 'destructive',
-          onPress: async (reason?: string) => {
-            if (!reason || reason.trim() === '') {
-              Alert.alert('Error', 'Alasan penolakan harus diisi');
-              return;
-            }
+  const handleReject = (bookingId: string) => {
+    setRejectingBookingId(bookingId);
+    setRejectReason('');
+    setShowRejectModal(true);
+  };
 
-            try {
-              setProcessingId(bookingId);
-              const token = await AsyncStorage.getItem('userToken');
-              const response = await fetch(`${API_URL}${API_ENDPOINTS.PEMINJAMAN}/${bookingId}/status`, {
-                method: 'PATCH',
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({ 
-                  status: 'rejected',
-                  rejectedReason: reason.trim(),
-                }),
-              });
+  const confirmReject = async () => {
+    if (!rejectReason.trim()) {
+      Alert.alert('Error', 'Alasan penolakan harus diisi');
+      return;
+    }
 
-              if (response.ok) {
-                Alert.alert('Berhasil', 'Peminjaman telah ditolak');
-                await loadBookingHistory();
-                await loadBookedDates();
-              } else {
-                const error = await response.json();
-                Alert.alert('Error', error.message || 'Gagal menolak peminjaman');
-              }
-            } catch (error) {
-              console.error('Error rejecting:', error);
-              Alert.alert('Error', 'Terjadi kesalahan saat menolak peminjaman');
-            } finally {
-              setProcessingId(null);
-            }
-          },
+    const bookingId = rejectingBookingId;
+    if (!bookingId) return;
+
+    try {
+      setProcessingId(bookingId);
+      setShowRejectModal(false);
+      
+      const token = await AsyncStorage.getItem('userToken');
+      const response = await fetch(`${API_URL}${API_ENDPOINTS.PEMINJAMAN}/${bookingId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
-      ],
-      'plain-text'
-    );
+        body: JSON.stringify({ 
+          status: 'rejected',
+          rejectedReason: rejectReason.trim(),
+        }),
+      });
+
+      if (response.ok) {
+        Alert.alert('Berhasil', 'Peminjaman telah ditolak');
+        await loadBookingHistory();
+        await loadBookedDates();
+      } else {
+        const error = await response.json();
+        Alert.alert('Error', error.message || 'Gagal menolak peminjaman');
+      }
+    } catch (error) {
+      console.error('Error rejecting:', error);
+      Alert.alert('Error', 'Terjadi kesalahan saat menolak peminjaman');
+    } finally {
+      setProcessingId(null);
+      setRejectingBookingId(null);
+      setRejectReason('');
+    }
   };
 
   return (
@@ -584,8 +590,9 @@ export default function PeminjamanLabScreen() {
             {/* Nama Lengkap */}
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { fontFamily: Fonts.regular, color: colors.text }]}>
-                Nama Lengkap<Text style={{ color: '#EF4444' }}>*</Text>
+                Nama Lengkap{' '}
               </Text>
+              <Text style={{ color: '#EF4444' }}>*</Text>
               <TextInput
                 style={[styles.input, { fontFamily: Fonts.regular, color: colors.text, backgroundColor: colors.background, borderColor: colors.border }]}
                 placeholder="Masukkan nama lengkap"
@@ -598,8 +605,9 @@ export default function PeminjamanLabScreen() {
             {/* NIM */}
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { fontFamily: Fonts.regular, color: colors.text }]}>
-                NIM<Text style={{ color: '#EF4444' }}>*</Text>
+                NIM{' '}
               </Text>
+              <Text style={{ color: '#EF4444' }}>*</Text>
               <TextInput
                 style={[styles.input, { fontFamily: Fonts.regular, color: colors.text, backgroundColor: colors.background, borderColor: colors.border }]}
                 placeholder="Masukkan NIM"
@@ -614,8 +622,9 @@ export default function PeminjamanLabScreen() {
             {/* Jumlah Orang */}
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { fontFamily: Fonts.regular, color: colors.text }]}>
-                Jumlah Orang<Text style={{ color: '#EF4444' }}>*</Text>
+                Jumlah Orang{' '}
               </Text>
+              <Text style={{ color: '#EF4444' }}>*</Text>
               <TextInput
                 style={[styles.input, { fontFamily: Fonts.regular, color: colors.text, backgroundColor: colors.background, borderColor: colors.border }]}
                 placeholder="Masukkan jumlah orang"
@@ -629,8 +638,9 @@ export default function PeminjamanLabScreen() {
             {/* Tanggal (readonly) */}
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { fontFamily: Fonts.regular, color: colors.text }]}>
-                Tanggal<Text style={{ color: '#EF4444' }}>*</Text>
+                Tanggal{' '}
               </Text>
+              <Text style={{ color: '#EF4444' }}>*</Text>
               <View style={[styles.input, styles.readonlyInput, { backgroundColor: colors.icon + '20', borderColor: colors.border }]}>
                 <Text style={[styles.readonlyText, { fontFamily: Fonts.medium, color: colors.text }]}>
                   {selectedDate}
@@ -642,8 +652,9 @@ export default function PeminjamanLabScreen() {
             <View style={styles.timeRow}>
               <View style={[styles.inputGroup, { flex: 1 }]}>
                 <Text style={[styles.label, { fontFamily: Fonts.regular, color: colors.text }]}>
-                  Waktu Mulai<Text style={{ color: '#EF4444' }}>*</Text>
+                  Waktu Mulai{' '}
                 </Text>
+                <Text style={{ color: '#EF4444' }}>*</Text>
                 <TextInput
                   style={[styles.input, { fontFamily: Fonts.regular, color: colors.text, backgroundColor: colors.background, borderColor: colors.border }]}
                   placeholder="08:00"
@@ -654,7 +665,7 @@ export default function PeminjamanLabScreen() {
               </View>
               <View style={[styles.inputGroup, { flex: 1 }]}>
                 <Text style={[styles.label, { fontFamily: Fonts.regular, color: colors.text }]}>
-                  Waktu Selesai<Text style={{ color: '#EF4444' }}>*</Text>
+                  Waktu Selesai <Text style={{ color: '#EF4444' }}>*</Text>
                 </Text>
                 <TextInput
                   style={[styles.input, { fontFamily: Fonts.regular, color: colors.text, backgroundColor: colors.background, borderColor: colors.border }]}
@@ -669,8 +680,9 @@ export default function PeminjamanLabScreen() {
             {/* Keperluan */}
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { fontFamily: Fonts.regular, color: colors.text }]}>
-                Keperluan<Text style={{ color: '#EF4444' }}>*</Text>
+                Keperluan{' '}
               </Text>
+              <Text style={{ color: '#EF4444' }}>*</Text>
               <TextInput
                 style={[styles.textArea, { fontFamily: Fonts.regular, color: colors.text, backgroundColor: colors.background, borderColor: colors.border }]}
                 placeholder="Jelaskan keperluan peminjaman laboratorium"
@@ -862,6 +874,76 @@ export default function PeminjamanLabScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* Rejection Modal */}
+      <Modal
+        visible={showRejectModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowRejectModal(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { fontFamily: Fonts.semiBold, color: colors.text }]}>
+                Tolak Peminjaman
+              </Text>
+              <TouchableOpacity onPress={() => setShowRejectModal(false)}>
+                <Ionicons name="close" size={24} color={colors.icon} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={[styles.modalLabel, { fontFamily: Fonts.regular, color: colors.text }]}>
+              Alasan Penolakan <Text style={{ color: '#EF4444' }}>*</Text>
+            </Text>
+            <TextInput
+              style={[
+                styles.modalTextArea,
+                {
+                  fontFamily: Fonts.regular,
+                  color: colors.text,
+                  backgroundColor: colors.background,
+                  borderColor: colors.border,
+                },
+              ]}
+              placeholder="Masukkan alasan penolakan"
+              placeholderTextColor={colors.icon}
+              value={rejectReason}
+              onChangeText={setRejectReason}
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
+            />
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[
+                  styles.modalButton,
+                  styles.modalCancelButton,
+                  { borderColor: colors.border },
+                ]}
+                onPress={() => setShowRejectModal(false)}
+              >
+                <Text style={[styles.modalButtonText, { fontFamily: Fonts.semiBold, color: colors.text }]}>
+                  Batal
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalRejectButton]}
+                onPress={confirmReject}
+                disabled={!rejectReason.trim()}
+              >
+                <Text style={[styles.modalButtonText, { fontFamily: Fonts.semiBold, color: '#FFF' }]}>
+                  Tolak
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }
@@ -1249,5 +1331,72 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: isSmallScreen ? 13 : 14,
     lineHeight: 20,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 400,
+    borderRadius: 16,
+    padding: 20,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: isSmallScreen ? 18 : 20,
+  },
+  modalLabel: {
+    fontSize: isSmallScreen ? 14 : 15,
+    marginBottom: 8,
+  },
+  modalTextArea: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    fontSize: isSmallScreen ? 14 : 15,
+    minHeight: 100,
+    marginBottom: 20,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: isSmallScreen ? 12 : 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalCancelButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+  },
+  modalRejectButton: {
+    backgroundColor: '#EF4444',
+  },
+  modalButtonText: {
+    fontSize: isSmallScreen ? 14 : 15,
   },
 });

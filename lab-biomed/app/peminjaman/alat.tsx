@@ -10,6 +10,8 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  Modal,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { useState, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
@@ -58,6 +60,11 @@ export default function PeminjamanAlatScreen() {
   const [bookingHistory, setBookingHistory] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  
+  // Rejection modal state
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+  const [rejectingBookingId, setRejectingBookingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -233,47 +240,48 @@ export default function PeminjamanAlatScreen() {
     );
   };
 
-  const handleReject = async (id: string) => {
-    Alert.prompt(
-      'Alasan Penolakan',
-      'Masukkan alasan penolakan:',
-      [
-        { text: 'Batal', style: 'cancel' },
-        {
-          text: 'Tolak',
-          onPress: async (reason) => {
-            if (!reason) {
-              Alert.alert('Error', 'Alasan penolakan harus diisi');
-              return;
-            }
-            setProcessingId(id);
-            try {
-              const token = await AsyncStorage.getItem('userToken');
-              const response = await fetch(`${API_URL}/peminjaman-alat/${id}/status`, {
-                method: 'PATCH',
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({ status: 'rejected', rejectedReason: reason }),
-              });
+  const handleReject = (id: string) => {
+    setRejectingBookingId(id);
+    setRejectReason('');
+    setShowRejectModal(true);
+  };
 
-              if (response.ok) {
-                Alert.alert('Berhasil', 'Peminjaman ditolak');
-                loadBookingHistory();
-              } else {
-                Alert.alert('Error', 'Gagal menolak peminjaman');
-              }
-            } catch (error) {
-              Alert.alert('Error', 'Terjadi kesalahan');
-            } finally {
-              setProcessingId(null);
-            }
-          },
+  const confirmReject = async () => {
+    if (!rejectReason.trim()) {
+      Alert.alert('Error', 'Alasan penolakan harus diisi');
+      return;
+    }
+
+    const id = rejectingBookingId;
+    if (!id) return;
+
+    try {
+      setProcessingId(id);
+      setShowRejectModal(false);
+      
+      const token = await AsyncStorage.getItem('userToken');
+      const response = await fetch(`${API_URL}/peminjaman-alat/${id}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
-      ],
-      'plain-text'
-    );
+        body: JSON.stringify({ status: 'rejected', rejectedReason: rejectReason.trim() }),
+      });
+
+      if (response.ok) {
+        Alert.alert('Berhasil', 'Peminjaman ditolak');
+        loadBookingHistory();
+      } else {
+        Alert.alert('Error', 'Gagal menolak peminjaman');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Terjadi kesalahan');
+    } finally {
+      setProcessingId(null);
+      setRejectingBookingId(null);
+      setRejectReason('');
+    }
   };
 
   return (
@@ -717,6 +725,76 @@ export default function PeminjamanAlatScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* Rejection Modal */}
+      <Modal
+        visible={showRejectModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowRejectModal(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { fontFamily: Fonts.semiBold, color: colors.text }]}>
+                Tolak Peminjaman
+              </Text>
+              <TouchableOpacity onPress={() => setShowRejectModal(false)}>
+                <Ionicons name="close" size={24} color={colors.icon} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={[styles.modalLabel, { fontFamily: Fonts.regular, color: colors.text }]}>
+              Alasan Penolakan<Text style={{ color: '#EF4444' }}>*</Text>
+            </Text>
+            <TextInput
+              style={[
+                styles.modalTextArea,
+                {
+                  fontFamily: Fonts.regular,
+                  color: colors.text,
+                  backgroundColor: colors.background,
+                  borderColor: colors.border,
+                },
+              ]}
+              placeholder="Masukkan alasan penolakan"
+              placeholderTextColor={colors.icon}
+              value={rejectReason}
+              onChangeText={setRejectReason}
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
+            />
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[
+                  styles.modalButton,
+                  styles.modalCancelButton,
+                  { borderColor: colors.border },
+                ]}
+                onPress={() => setShowRejectModal(false)}
+              >
+                <Text style={[styles.modalButtonText, { fontFamily: Fonts.semiBold, color: colors.text }]}>
+                  Batal
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalRejectButton]}
+                onPress={confirmReject}
+                disabled={!rejectReason.trim()}
+              >
+                <Text style={[styles.modalButtonText, { fontFamily: Fonts.semiBold, color: '#FFF' }]}>
+                  Tolak
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }
@@ -1136,21 +1214,71 @@ const styles = StyleSheet.create({
     fontSize: isSmallScreen ? 11 : 12,
     textAlign: 'center',
   },
-  historyCard: {
-    marginHorizontal: isSmallScreen ? 16 : 20,
-    padding: isSmallScreen ? 16 : 20,
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 400,
     borderRadius: 16,
-    marginBottom: 20,
+    padding: 20,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 12,
       },
       android: {
-        elevation: 4,
+        elevation: 8,
       },
     }),
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: isSmallScreen ? 18 : 20,
+  },
+  modalLabel: {
+    fontSize: isSmallScreen ? 14 : 15,
+    marginBottom: 8,
+  },
+  modalTextArea: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    fontSize: isSmallScreen ? 14 : 15,
+    minHeight: 100,
+    marginBottom: 20,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: isSmallScreen ? 12 : 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalCancelButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+  },
+  modalRejectButton: {
+    backgroundColor: '#EF4444',
+  },
+  modalButtonText: {
+    fontSize: isSmallScreen ? 14 : 15,
   },
 });

@@ -111,34 +111,31 @@ export default function AturanLabScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: '#8B5CF6' }]}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
+      <View style={[styles.header, { backgroundColor: colors.primary }]}>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="#FFF" />
         </TouchableOpacity>
-        <View style={styles.headerContent}>
-          <Ionicons name="document-text" size={32} color="#FFF" />
-          <Text style={[styles.headerTitle, { fontFamily: Fonts.bold }]}>
-            Aturan Lab
+        <Text style={[styles.headerTitle, { fontFamily: Fonts.bold }]}>Aturan Lab</Text>
+        <View style={{ width: 40 }} />
+      </View>
+
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Banner */}
+        <View style={[styles.banner, { backgroundColor: colors.primary + '15' }]}>
+          <Ionicons name="document-text" size={48} color={colors.primary} />
+          <Text style={[styles.bannerTitle, { fontFamily: Fonts.semiBold, color: colors.text }]}>
+            Aturan Laboratorium
           </Text>
-          <Text style={[styles.headerSubtitle, { fontFamily: Fonts.regular }]}>
+          <Text style={[styles.bannerSubtext, { fontFamily: Fonts.regular, color: colors.icon }]}>
             Peraturan & Tata Tertib Laboratorium
           </Text>
         </View>
-      </View>
 
-      {/* Content */}
-      <ScrollView
-        style={styles.content}
-        contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false}
-      >
         {/* Introduction Card */}
+        <View style={[styles.content, { paddingTop: 0 }]}>
         <View style={[styles.introCard, { backgroundColor: colors.card }]}>
-          <View style={[styles.introIcon, { backgroundColor: '#8B5CF6' + '20' }]}>
-            <Ionicons name="information-circle" size={28} color="#8B5CF6" />
+          <View style={[styles.introIcon, { backgroundColor: '#FF4E05' + '20' }]}>
+            <Ionicons name="information-circle" size={28} color="#FF4E05" />
           </View>
           <Text style={[styles.introTitle, { fontFamily: Fonts.semiBold, color: colors.text }]}>
             Penting untuk Diperhatikan
@@ -148,8 +145,10 @@ export default function AturanLabScreen() {
             keamanan, dan kelancaran kegiatan di Laboratorium Teknik Biomedika.
           </Text>
         </View>
+        </View>
 
         {/* Rules Section */}
+        <View style={styles.content}>
         <View style={styles.rulesSection}>
           <Text style={[styles.sectionTitle, { fontFamily: Fonts.semiBold, color: colors.text }]}>
             Peraturan Utama
@@ -187,8 +186,10 @@ export default function AturanLabScreen() {
             </View>
           ))}
         </View>
+        </View>
 
         {/* Additional Information */}
+        <View style={[styles.content, { paddingTop: 0 }]}>
         <View style={styles.additionalSection}>
           <Text style={[styles.sectionTitle, { fontFamily: Fonts.semiBold, color: colors.text }]}>
             Informasi Tambahan
@@ -213,14 +214,17 @@ export default function AturanLabScreen() {
             </View>
           ))}
         </View>
+        </View>
 
         {/* Footer Note */}
+        <View style={[styles.content, { paddingTop: 0 }]}>
         <View style={[styles.footerNote, { backgroundColor: colors.card }]}>
           <Ionicons name="checkmark-circle" size={24} color="#10B981" />
           <Text style={[styles.footerText, { fontFamily: Fonts.regular, color: colors.text }]}>
             Dengan menggunakan fasilitas laboratorium, Anda dianggap telah membaca, 
             memahami, dan menyetujui untuk mematuhi seluruh peraturan yang berlaku.
           </Text>
+        </View>
         </View>
 
         {/* Bottom Spacing */}
@@ -235,45 +239,45 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingTop: Platform.OS === 'ios' ? 60 : 40,
-    paddingBottom: 30,
+    paddingBottom: 20,
     paddingHorizontal: isSmallScreen ? 16 : 20,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
   },
   backButton: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  headerContent: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   headerTitle: {
-    fontSize: isSmallScreen ? 24 : 28,
+    fontSize: isSmallScreen ? 16 : 18,
     color: '#FFF',
-    marginTop: 12,
-    marginBottom: 8,
+    flex: 1,
+    textAlign: 'center',
   },
-  headerSubtitle: {
-    fontSize: isSmallScreen ? 14 : 16,
-    color: 'rgba(255,255,255,0.9)',
+  banner: {
+    alignItems: 'center',
+    padding: 32,
+    gap: 8,
+  },
+  bannerTitle: {
+    fontSize: isSmallScreen ? 18 : 20,
+  },
+  bannerSubtext: {
+    fontSize: isSmallScreen ? 12 : 13,
+    textAlign: 'center',
   },
   content: {
-    flex: 1,
-  },
-  contentContainer: {
     padding: isSmallScreen ? 16 : 20,
+    gap: 16,
   },
   introCard: {
     padding: isSmallScreen ? 20 : 24,
     borderRadius: 16,
     alignItems: 'center',
-    marginBottom: 24,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -305,16 +309,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   rulesSection: {
-    marginBottom: 24,
+    gap: 16,
   },
   sectionTitle: {
-    fontSize: isSmallScreen ? 18 : 20,
-    marginBottom: 16,
+    fontSize: isSmallScreen ? 16 : 18,
   },
   ruleCard: {
     borderRadius: 16,
     padding: isSmallScreen ? 16 : 20,
-    marginBottom: 16,
     flexDirection: 'row',
     overflow: 'hidden',
     ...Platform.select({
@@ -375,13 +377,12 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   additionalSection: {
-    marginBottom: 24,
+    gap: 12,
   },
   infoCard: {
     flexDirection: 'row',
     padding: isSmallScreen ? 16 : 20,
     borderRadius: 16,
-    marginBottom: 12,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -418,7 +419,6 @@ const styles = StyleSheet.create({
     padding: isSmallScreen ? 16 : 20,
     borderRadius: 16,
     gap: 12,
-    marginBottom: 8,
     ...Platform.select({
       ios: {
         shadowColor: '#000',

@@ -19,10 +19,10 @@ const isSmallScreen = width < 375;
 const ASSISTANTS = [
   {
     id: 1,
-    name: 'Ahmad Rizky Pratama',
+    name: 'Rizky Ahmad',
     nim: '13220001',
     expertise: 'Medical Imaging',
-    contact: 'ahmad.rizky@students.itb.ac.id',
+    contact: 'rizky.ahmad@students.itb.ac.id',
     responsible: ['Praktikum Instrumentasi', 'Workshop AI'],
   },
   {
@@ -35,7 +35,7 @@ const ASSISTANTS = [
   },
   {
     id: 3,
-    name: 'Budi Santoso',
+    name: 'Budi Imam Santoso',
     nim: '13220023',
     expertise: 'Embedded Systems',
     contact: 'budi.santoso@students.itb.ac.id',
