@@ -23,7 +23,7 @@ const LECTURERS = [
     title: 'Kepala Laboratorium',
     expertise: ['Medical Imaging', 'Signal Processing', 'AI in Healthcare'],
     email: 'budi.santoso@stei.itb.ac.id',
-    image: require('@/assets/images/Dosen/Doni-Danudirjo-Thumbnail.jpg'),
+    image: require('@/assets/images/Dosen/people1.jpeg'),
   },
   {
     id: 2,

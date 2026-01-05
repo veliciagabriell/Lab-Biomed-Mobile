@@ -77,7 +77,7 @@ const OFFICE_HOURS = [
 const CONTACT_PERSONS = [
   {
     id: 1,
-    name: 'Dr. Doni Danudirjo',
+    name: 'Dr. Budi Santoso, S.T., M.T.',
     position: 'Kepala Laboratorium',
     phone: '+62 812-1111-2222',
     email: 'doni@stei.itb.ac.id',
