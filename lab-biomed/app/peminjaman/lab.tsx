@@ -440,11 +440,17 @@ export default function PeminjamanLabScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView
-        style={styles.content}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
+        <ScrollView
+          style={styles.content}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingBottom: 100 }}
+        >
         {/* Tab Switcher */}
         <View style={[styles.tabContainer, { backgroundColor: colors.card }]}>
           <TouchableOpacity
@@ -874,6 +880,7 @@ export default function PeminjamanLabScreen() {
           </View>
         )}
       </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* Rejection Modal */}
       <Modal
